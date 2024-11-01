@@ -1,0 +1,25 @@
+2024-11-01 18:56:01 - INFO - Running agent example_agent that will connect to fireworks::accounts/fireworks/models/llama-v3p1-405b-instruct-long, temperature=1.0, max_tokens=16384
+2024-11-01 18:56:01 - INFO - Running agent /Users/Chetan.Nandakumar/Dropbox/Code/nearai/shirt_agent, iteration 1/1
+2024-11-01 18:56:02 - INFO - Retrieved 1 messages from NearAI Hub
+2024-11-01 18:56:05 - INFO - Marking environment run as completed
+2024-11-01 18:56:06 - INFO - Environment run completed
+2024-11-01 18:56:16 - INFO - Running agent example_agent that will connect to fireworks::accounts/fireworks/models/llama-v3p1-405b-instruct-long, temperature=1.0, max_tokens=16384
+2024-11-01 18:56:16 - INFO - Running agent /Users/Chetan.Nandakumar/Dropbox/Code/nearai/shirt_agent, iteration 1/1
+2024-11-01 18:56:17 - INFO - Retrieved 3 messages from NearAI Hub
+2024-11-01 18:56:22 - INFO - Marking environment run as completed
+2024-11-01 18:56:23 - INFO - Environment run completed
+2024-11-01 18:56:33 - INFO - Running agent example_agent that will connect to fireworks::accounts/fireworks/models/llama-v3p1-405b-instruct-long, temperature=1.0, max_tokens=16384
+2024-11-01 18:56:33 - INFO - Running agent /Users/Chetan.Nandakumar/Dropbox/Code/nearai/shirt_agent, iteration 1/1
+2024-11-01 18:56:34 - INFO - Retrieved 5 messages from NearAI Hub
+2024-11-01 18:56:43 - INFO - Marking environment run as completed
+2024-11-01 18:56:44 - INFO - Environment run completed
+2024-11-01 19:10:45 - INFO - Running agent example_agent that will connect to fireworks::accounts/fireworks/models/llama-v3p1-405b-instruct-long, temperature=1.0, max_tokens=16384
+2024-11-01 19:10:45 - INFO - Running agent /Users/Chetan.Nandakumar/Dropbox/Code/nearai/shirt_agent, iteration 1/1
+2024-11-01 19:10:45 - INFO - Retrieved 1 messages from NearAI Hub
+2024-11-01 19:10:49 - INFO - Marking environment run as completed
+2024-11-01 19:10:50 - INFO - Environment run completed
+2024-11-01 19:11:14 - INFO - Running agent example_agent that will connect to fireworks::accounts/fireworks/models/llama-v3p1-405b-instruct-long, temperature=1.0, max_tokens=16384
+2024-11-01 19:11:14 - INFO - Running agent /Users/Chetan.Nandakumar/Dropbox/Code/nearai/shirt_agent, iteration 1/1
+2024-11-01 19:11:15 - INFO - Retrieved 1 messages from NearAI Hub
+2024-11-01 19:11:20 - INFO - Marking environment run as completed
+2024-11-01 19:11:21 - INFO - Environment run completed
