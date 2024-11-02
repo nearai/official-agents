@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shopping with NEAR AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7fafc;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        .content {
+            /* Centers the content container horizontally */
+            max-width: 960px;
+            width: 100%;            /* Ensures it fills available space up to max-width */
+            padding: 20px;          /* Adds padding for spacing within the content box */
+            
+            /* Centers the content container within the body */
+            display: flex;
+            flex-direction: column; /* Arranges elements vertically */
+            align-items: center;    /* Centers inner content horizontally */
+            box-sizing: border-box; /* Includes padding in width calculation */
+
+            /* Optional styling for visual refinement */
+            background-color: #ffffff;  /* Optional white background */
+            border-radius: 8px;         /* Smooths the edges */
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Adds a soft shadow for depth */
+        }
+        .items-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .highlight-suggestion {
+            background-color: #fff9e6; /* Soft golden background */
+            padding: 10px; 
+            border-left: 4px solid #ffc107; 
+            color: #333; /* Dark golden border */
+        }
+        .search-container {
+            display: flex;
+            width: 100%;
+            max-width: 600px;
+            gap: 10px;
+            align-items: center;
+        }
+        .search-input {
+            flex: 1;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            box-sizing: border-box;
+
+        }
+        .search-button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.action === 'near_view_response') {
+                const response = event.data;
+                console.log('Received response:', response);
+                if (response.result){
+                    document.getElementById("view-result").innerText = `Requesting "ft_total_supply" from "wrap.near": ${JSON.stringify(response.result)}.`;
+                }
+            }
+        }, false);
+
+        function action() {
+            const callData = {
+                recipient: "wrap.near",
+                method: "near_deposit",
+                params: {},
+                gas: "30000000000000",
+                deposit: "1000000000000000000000000",
+                requestId: "OptionalString"
+            };
+
+            const message = {
+                action: "near_call",
+                data: callData
+            };
+
+            window.parent.postMessage(message, '*');
+        }
+
+        function view() {
+            const callData = {
+                recipient: "wrap.near",
+                method: "ft_total_supply",
+                params: {},
+                requestId: "OptionalString"
+            };
+
+            const message = {
+                action: "near_view",
+                data: callData
+            };
+
+            window.parent.postMessage(message, '*');
+        }
+
+        view();
+    </script>
+</head>
+<body>
+    <div class="content">
+        <h1>Shopping with NEAR AI</h1>
+
+        <!-- Search Bar Implementation -->
+        <div class="search-container" style="margin-bottom: 20px;">
+            <input
+              type="text"
+              name="query"
+              placeholder="Search..."
+              id="user-prompt"
+              value="$last_search_term"
+              class="search-input disabled"
+              disabled=true
+            >
+        </div>
+        <div id="responses">
+          <p id="chat_message" style="font-weight: bold; font-size: 1.1rem;">$chat_message</p>
+          <p id="suggestion" class="highlight-suggestion">$suggestion</p>
+        </div>
+        <div id="items-container" class="items-container">
+            $items
+        </div>
+    </div>
+</body>
+</html>

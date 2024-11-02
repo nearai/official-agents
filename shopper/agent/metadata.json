@@ -1,0 +1,29 @@
+{
+  "category": "agent",
+  "name": "shopper",
+  "version": "0.0.5",
+  "description": "I can help you find and buy products to solve your problems",
+  "tags": [
+    "shopping",
+    "offers",
+    "ecommerce"
+  ],
+  "details": {
+    "display_name": "NearShoppin",
+    "agent": {
+      "welcome": {
+        "title": "NearShoppin, your Personal Shopping assistant.",
+        "description": "Tell me what you're looking for or what problem you're trying to solve and I'll help you find the best product for you."
+      },
+      "//initial_user_message": "init",
+      "defaults": {
+        "max_iterations": 1,
+        "model": "qwen2p5-72b-instruct",
+        "model_provider": "fireworks",
+        "model_temperature": 0.0,
+        "model_max_tokens": 20000
+      }
+    }
+  },
+  "show_entry": true
+}
