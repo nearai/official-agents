@@ -1,10 +1,12 @@
 import requests
 import json
+import os
+ACCESS_TOKEN = os.environ.get('PRINTFUL_ACCESS_TOKEN', None)
 
 
 def create_order(address, size, color, print_response=False) -> bool:
-    ACCESS_TOKEN = 'NzlAd6J01NRaLllAe4TXUA7XoSpaox70gNNPgcZs'
-    STORE_ID = '14709021'          # Replace with your actual store ID
+    global ACCESS_TOKEN
+    STORE_ID = '14709021'          
     API_URL = 'https://api.printful.com/orders'
 
     # Set up headers with Bearer token

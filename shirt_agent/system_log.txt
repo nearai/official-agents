@@ -23,3 +23,13 @@
 2024-11-01 19:11:15 - INFO - Retrieved 1 messages from NearAI Hub
 2024-11-01 19:11:20 - INFO - Marking environment run as completed
 2024-11-01 19:11:21 - INFO - Environment run completed
+2024-11-01 19:41:23 - INFO - Running agent example_agent that will connect to fireworks::accounts/fireworks/models/llama-v3p1-405b-instruct-long, temperature=1.0, max_tokens=16384
+2024-11-01 19:41:23 - INFO - Running agent /Users/Chetan.Nandakumar/Dropbox/Code/official-agents/shirt_agent, iteration 1/1
+2024-11-01 19:41:25 - INFO - Retrieved 1 messages from NearAI Hub
+2024-11-01 19:41:39 - INFO - Marking environment run as completed
+2024-11-01 19:41:41 - INFO - Environment run completed
+2024-11-02 12:37:22 - INFO - Running agent example_agent that will connect to fireworks::accounts/fireworks/models/llama-v3p1-405b-instruct-long, temperature=1.0, max_tokens=16384
+2024-11-02 12:37:22 - INFO - Running agent /Users/Chetan.Nandakumar/Dropbox/Code/official-agents/shirt_agent, iteration 1/1
+2024-11-02 12:37:23 - INFO - Retrieved 1 messages from NearAI Hub
+2024-11-02 12:37:27 - INFO - Marking environment run as completed
+2024-11-02 12:37:28 - INFO - Environment run completed
