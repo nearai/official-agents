@@ -3,7 +3,6 @@ import json
 import os
 ACCESS_TOKEN = os.environ.get('PRINTFUL_ACCESS_TOKEN', None)
 
-
 def create_order(address, size, color, print_response=False) -> bool:
     global ACCESS_TOKEN
     STORE_ID = '14709021'          
