@@ -1,19 +1,117 @@
-<div class="item">
-    <h2 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 8px;">$title</h2>
-    <a href="$url" target="_blank">
-    <div style="width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;">
-        <img src='$image' style="max-width: 100%; max-height: 100%;"></img>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shopping with NEAR AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7fafc;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .content {
+            max-width: 960px;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .items-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+        .item {
+            text-align: center;
+            padding: 16px;
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .item img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .size-selector, .purchase-button {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>Shopping with NEAR AI</h1>
+        
+        <div id="items-container" class="items-container">
+            <!-- T-Shirt Blue -->
+            <div class="item">
+                <label>
+                    <input type="radio" name="shirt-color" value="Blue">
+                    <h2 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 8px;">Blue T-Shirt</h2>
+                    <div style="width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+                        <img src='https://via.placeholder.com/200?text=Blue+T-Shirt' alt="Blue T-Shirt">
+                    </div>
+                    <p style="color: #4a5568; margin-bottom: 16px;">Color: Blue</p>
+                </label>
+            </div>
+
+            <!-- T-Shirt Green -->
+            <div class="item">
+                <label>
+                    <input type="radio" name="shirt-color" value="Green">
+                    <h2 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 8px;">Green T-Shirt</h2>
+                    <div style="width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+                        <img src='https://via.placeholder.com/200?text=Green+T-Shirt' alt="Green T-Shirt">
+                    </div>
+                    <p style="color: #4a5568; margin-bottom: 16px;">Color: Green</p>
+                </label>
+            </div>
+
+            <!-- T-Shirt Yellow -->
+            <div class="item">
+                <label>
+                    <input type="radio" name="shirt-color" value="Yellow">
+                    <h2 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 8px;">Yellow T-Shirt</h2>
+                    <div style="width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+                        <img src='https://via.placeholder.com/200?text=Yellow+T-Shirt' alt="Yellow T-Shirt">
+                    </div>
+                    <p style="color: #4a5568; margin-bottom: 16px;">Color: Yellow</p>
+                </label>
+            </div>
+        </div>
+
+        <!-- Size Selector -->
+        <div class="size-selector">
+            <h3>Select Size:</h3>
+            <label><input type="radio" name="size" value="S"> S</label>
+            <label><input type="radio" name="size" value="M"> M</label>
+            <label><input type="radio" name="size" value="L"> L</label>
+            <label><input type="radio" name="size" value="XL"> XL</label>
+        </div>
+
+        <!-- Purchase Button -->
+        <div class="purchase-button">
+            <a href="https://example.com" target="_blank" style="
+                display: inline-block;
+                margin-top: 16px;
+                background-color: #4299e1;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 4px;
+                text-decoration: none;
+                font-weight: bold;">Purchase</a>
+        </div>
     </div>
-    </a>
-    <p style="color: #4a5568; margin-bottom: 16px;">$description</p>
-    <p style="color: #2d3748; font-weight: 600;">Price: $price</p>
-    <a href="$url" target="_blank" style="
-        display: inline-block;
-        margin-top: 16px;
-        background-color: #4299e1;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 4px;
-        text-decoration: none;
-        font-weight: bold;">Purchase</a>
-</div>
+</body>
+</html>
