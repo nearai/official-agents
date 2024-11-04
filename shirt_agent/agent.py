@@ -131,6 +131,7 @@ question_for_llm =  {"role": "system", "content": "Did the user ask to purchase 
 did_user_ask_to_buy_shirt = env.completion(env.list_messages() + [question_for_llm]).replace("\n", " ")
 
 if "yes" in did_user_ask_to_buy_shirt.lower():
+    #print(">>>>>>> Right inside if block")
     agent_message = "Great! To complete your order, please provide your shirt size, shirt color, and shipping address."
     env.add_message("agent", agent_message)
     process_user_response()
