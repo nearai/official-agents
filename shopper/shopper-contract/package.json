@@ -1,11 +1,12 @@
 {
-  "name": "auction-contract",
+  "name": "shopper-contract",
   "version": "1.0.0",
-  "license": "(MIT AND Apache-2.0)",
+  "license": "(MIT)",
   "type": "module",
   "scripts": {
-    "build": "near-sdk-js build src/contract.ts build/auction-contract.wasm",
-    "test": "$npm_execpath run build && ava -- ./build/auction-contract.wasm"
+    "build": "near-sdk-js build src/contract.ts build/shopper-contract.wasm",
+    "test": "$npm_execpath run build && ava -- ./build/shopper-contract.wasm",
+    "deploy": "npm run build && NEAR_ENV=mainnet near deploy demo-shopper.near ./build/shopper-contract.wasm"
   },
   "dependencies": {
     "near-sdk-js": "2.0.0"
@@ -16,7 +17,7 @@
     "typescript": "^5.4.5"
   },
   "ava": {
-    "timeout": "50000",
+    "timeout": "50s",
     "files": ["sandbox-test/*.ava.js"]
   }
 }

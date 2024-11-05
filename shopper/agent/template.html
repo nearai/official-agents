@@ -11,7 +11,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: Arial, sans-serif;
         }
         .content {
             /* Centers the content container horizontally */
@@ -28,7 +27,7 @@
             /* Optional styling for visual refinement */
             background-color: #ffffff;  /* Optional white background */
             border-radius: 8px;         /* Smooths the edges */
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Adds a soft shadow for depth */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Adds a soft shadow for depth */
         }
         .items-container {
             display: grid;
@@ -73,23 +72,32 @@
                 const response = event.data;
                 console.log('Received response:', response);
                 if (response.result){
-                    document.getElementById("view-result").innerText = `Requesting "ft_total_supply" from "wrap.near": ${JSON.stringify(response.result)}.`;
+                    document.getElementById("item-1-inventory").innerText = `${JSON.stringify(response.result)}`;
                 }
             }
         }, false);
 
         function action() {
             const callData = {
-                recipient: "wrap.near",
-                method: "near_deposit",
-                params: {},
-                gas: "30000000000000",
-                deposit: "1000000000000000000000000",
-                requestId: "OptionalString"
-            };
+                // requestId: "NEED_REQUEST_ID",
+                transactions: [{
+                    receiverId: "demo-shopper.near",
+                    actions: [
+                        {
+                            type: "FunctionCall",
+                            params: {
+                                methodName: "order",
+                                args: { },
+                                gas: "30000000000000",
+                                deposit: "100000000000000000000", // = 0.01 NEAR,  10000000000000000000000 = 1 Near
+                            },
+                        },
+                    ],
+                }]
+            } ;
 
             const message = {
-                action: "near_call",
+                action: "near_send_transactions",
                 data: callData
             };
 
@@ -98,8 +106,8 @@
 
         function view() {
             const callData = {
-                recipient: "wrap.near",
-                method: "ft_total_supply",
+                contractId: "demo-shopper.near",
+                methodName: "get_orders",
                 params: {},
                 requestId: "OptionalString"
             };
@@ -114,6 +122,11 @@
 
         view();
     </script>
+    <script>
+        function collectOrder() {
+            // show order form
+        }
+    </script>
 </head>
 <body>
     <div class="content">
@@ -121,15 +134,16 @@
 
         <!-- Search Bar Implementation -->
         <div class="search-container" style="margin-bottom: 20px;">
-            <input
-              type="text"
-              name="query"
-              placeholder="Search..."
-              id="user-prompt"
-              value="$last_search_term"
-              class="search-input disabled"
-              disabled=true
-            >
+<!--            <input-->
+<!--              type="text"-->
+<!--              name="query"-->
+<!--              placeholder="Search..."-->
+<!--              id="user-prompt"-->
+<!--              value="$last_search_term"-->
+<!--              class="search-input disabled"-->
+<!--              disabled=true-->
+<!--            >-->
+            <div>$last_search_term</div>
         </div>
         <div id="responses">
           <p id="chat_message" style="font-weight: bold; font-size: 1.1rem;">$chat_message</p>

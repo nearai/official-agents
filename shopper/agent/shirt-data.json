@@ -1,0 +1,243 @@
+[{
+  "product_id": "1",
+  "product_title": "My AI bought this shirt - NEAR Protocol T-Shirt",
+  "product_description": "Purchase with NEAR - My AI bought this shirt with $NEAR - NEAR Protocol T-Shirt in three colors and seven sizes.",
+  "product_photos": [
+    "https://raw.githubusercontent.com/nearai/official-agents/refs/heads/main/shopper/near-shirt-product/images/blue-shirt-female.jpg",
+    "https://raw.githubusercontent.com/nearai/official-agents/refs/heads/main/shopper/near-shirt-product/images/green-shirt-female.jpg",
+    "https://raw.githubusercontent.com/nearai/official-agents/refs/heads/main/shopper/near-shirt-product/images/yellow-shirt-female.jpg",
+    "https://raw.githubusercontent.com/nearai/official-agents/refs/heads/main/shopper/near-shirt-product/images/blue-shirt-male.jpg",
+    "https://raw.githubusercontent.com/nearai/official-agents/refs/heads/main/shopper/near-shirt-product/images/green-shirt-male.jpg",
+    "https://raw.githubusercontent.com/nearai/official-agents/refs/heads/main/shopper/near-shirt-product/images/yellow-shirt-male.jpg"
+  ],
+  "product_attributes": {},
+  "product_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+  "product_offers_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+  "product_specs_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+  "product_reviews_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+  "product_page_url_v2": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+  "product_num_reviews": 0,
+  "product_num_offers": "1",
+  "typical_price_range": [
+    "1 $NEAR",
+    "1 $NEAR"
+  ],
+  "product_variant_properties": {
+    "Size": "Any Size"
+  },
+  "product_variants": {
+    "Size": [
+      {
+        "value": "Any Size"
+      },
+      {
+        "value": "S"
+      },
+      {
+        "value": "M"
+      },
+      {
+        "value": "L"
+      },
+      {
+        "value": "XL"
+      },
+      {
+        "value": "2XL"
+      },
+      {
+        "value": "3XL"
+      },
+      {
+        "value": "4XL"
+      }
+    ],
+    "Color": [
+      {
+        "value": "Any Color"
+      },
+      {
+        "value": "Blue"
+      },
+      {
+        "value": "Green"
+      },
+      {
+        "value": "Yellow"
+      }
+    ]
+  },
+  "offer": {
+    "offer_id": "1",
+    "offer_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+    "price": "$NEAR 1",
+    "shipping": "Free delivery",
+    "on_sale": false,
+    "original_price": null,
+    "product_condition": "NEW",
+    "store_name": "REDACTED Conference",
+    "store_rating": 5,
+    "store_review_count": 0,
+    "store_reviews_page_url": null,
+    "payment_methods": "$NEAR accepted"
+  }
+},
+  {
+    "product_id": "2",
+    "product_title": "My AI bought this shirt - NEAR Protocol T-Shirt",
+    "product_description": "Purchase with NEAR - My AI bought this shirt with $NEAR - NEAR Protocol T-Shirt in three colors and seven sizes.",
+    "product_photos": [
+      "https://raw.githubusercontent.com/nearai/official-agents/refs/heads/main/shopper/near-shirt-product/images/green-shirt-male.jpg"
+    ],
+    "product_attributes": {},
+    "product_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+    "product_offers_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+    "product_specs_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+    "product_reviews_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+    "product_page_url_v2": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+    "product_num_reviews": 0,
+    "product_num_offers": "1",
+    "typical_price_range": [
+      "1 $NEAR",
+      "1 $NEAR"
+    ],
+    "product_variant_properties": {
+      "Size": "Any Size"
+    },
+    "product_variants": {
+      "Size": [
+        {
+          "value": "Any Size"
+        },
+        {
+          "value": "S"
+        },
+        {
+          "value": "M"
+        },
+        {
+          "value": "L"
+        },
+        {
+          "value": "XL"
+        },
+        {
+          "value": "2XL"
+        },
+        {
+          "value": "3XL"
+        },
+        {
+          "value": "4XL"
+        }
+      ],
+      "Color": [
+        {
+          "value": "Any Color"
+        },
+        {
+          "value": "Blue"
+        },
+        {
+          "value": "Green"
+        },
+        {
+          "value": "Yellow"
+        }
+      ]
+    },
+    "offer": {
+      "offer_id": "1",
+      "offer_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+      "price": "$NEAR 1",
+      "shipping": "Free delivery",
+      "on_sale": false,
+      "original_price": null,
+      "product_condition": "NEW",
+      "store_name": "REDACTED Conference",
+      "store_rating": 5,
+      "store_review_count": 0,
+      "store_reviews_page_url": null,
+      "payment_methods": "$NEAR accepted"
+    }
+  },
+  {
+    "product_id": "3",
+    "product_title": "My AI bought this shirt - NEAR Protocol T-Shirt",
+    "product_description": "Purchase with NEAR - My AI bought this shirt with $NEAR - NEAR Protocol T-Shirt in three colors and seven sizes.",
+    "product_photos": [
+      "https://raw.githubusercontent.com/nearai/official-agents/refs/heads/main/shopper/near-shirt-product/images/yellow-shirt-female.jpg"
+    ],
+    "product_attributes": {},
+    "product_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+    "product_offers_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+    "product_specs_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+    "product_reviews_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+    "product_page_url_v2": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+    "product_num_reviews": 0,
+    "product_num_offers": "1",
+    "typical_price_range": [
+      "1 $NEAR",
+      "1 $NEAR"
+    ],
+    "product_variant_properties": {
+      "Size": "Any Size"
+    },
+    "product_variants": {
+      "Size": [
+        {
+          "value": "Any Size"
+        },
+        {
+          "value": "S"
+        },
+        {
+          "value": "M"
+        },
+        {
+          "value": "L"
+        },
+        {
+          "value": "XL"
+        },
+        {
+          "value": "2XL"
+        },
+        {
+          "value": "3XL"
+        },
+        {
+          "value": "4XL"
+        }
+      ],
+      "Color": [
+        {
+          "value": "Any Color"
+        },
+        {
+          "value": "Blue"
+        },
+        {
+          "value": "Green"
+        },
+        {
+          "value": "Yellow"
+        }
+      ]
+    },
+    "offer": {
+      "offer_id": "1",
+      "offer_page_url": "https://app.near.ai/agents/flatirons.near/shopper/0.0.5/run",
+      "price": "$NEAR 1",
+      "shipping": "Free delivery",
+      "on_sale": false,
+      "original_price": null,
+      "product_condition": "NEW",
+      "store_name": "REDACTED Conference",
+      "store_rating": 5,
+      "store_review_count": 0,
+      "store_reviews_page_url": null,
+      "payment_methods": "$NEAR accepted"
+    }
+  }
+  ]

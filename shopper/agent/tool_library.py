@@ -50,7 +50,7 @@ class CommonTools:
         response = requests.get(api_url, params=params)
         return response.json()
 
-    def product_search(self, query, country='us', language='en', page=1, limit=9, sort_by='BEST_MATCH', product_condition='ANY', min_price=0.00):
+    def product_search(self, query, country='us', language='en', page=1, limit=6, sort_by='BEST_MATCH', product_condition='ANY', min_price=0.00):
         """Search for products using the Real-Time Product Search API via RapidAPI.
 
         query: The search query for the products.
@@ -86,8 +86,21 @@ class CommonTools:
         products = data.get('data', {}).get('products', [])
         self.nearai_agent_client.add_system_log (f"Found {len(products)} products")
 
-        formatted_products = []
+        with open('shirt-data.json', 'r', encoding='utf-8') as file:
+            shirt_data = json.loads(file.read())
+            for shirt in shirt_data:
+                products.insert(0, shirt)
 
+        formatted_products = CommonTools.format_products(min_price, products)
+
+        if self.process_product_results_function:
+            self.process_product_results_function(formatted_products)
+
+        return formatted_products
+
+    @staticmethod
+    def format_products(min_price, products):
+        formatted_products = []
         for product in products:
             title = product.get('product_title', '')
             description = product.get('product_description', '')
@@ -107,21 +120,21 @@ class CommonTools:
                 # If price parsing fails, skip this product
                 price_value = 'Price not available'
 
+            id = product.get('product_id', '')
             product_url = offer.get('offer_page_url', '') or product.get('product_page_url', '')
             images = product.get('product_photos', [])
             image = images[0] if images else ''
 
             # Store the actual values in the mapping
             formatted_product = {
+                "id": id,
                 "title": title,
                 "description": description,
                 "price": price,
                 "url": product_url,
-                "image": image
+                "image": image,
+                "payment_methods": product.get('offer', {}).get('payment_methods', "")
             }
             formatted_products.append(formatted_product)
-
-        if self.process_product_results_function:
-            self.process_product_results_function(formatted_products)
 
         return formatted_products

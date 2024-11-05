@@ -35,13 +35,12 @@ npm run test
 Install the [NEAR CLI](https://docs.near.org/tools/near-cli#installation) and run:
 
 ```bash
-# Create a new account
+# Create a new testnet account
 near create <contractId> --useFaucet
 
 # Deploy the contract
 near deploy <contractId> ./build/auction-contract.wasm
 
 # Initialize the contract
-TWO_MINUTES_FROM_NOW=$(date -v+2M +%s000000000)
-near call <contractId> init '{"end_time": "'$TWO_MINUTES_FROM_NOW'", "auctioneer": "<auctioneerAccountId>"}' --accountId <contractId>
+near call <contractId> init '{"key": "value"}' --accountId <contractId>
 ```
