@@ -68,6 +68,8 @@
     </style>
     <script>
         const totalQuantity = 10;
+        const agent_order_id = "$agent_order_id";
+
         window.addEventListener('message', function(event) {
             if (event.data && event.data.action === 'near_view_response') {
                 const response = event.data;
@@ -78,16 +80,37 @@
                     document.getElementById("item-1-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
                     document.getElementById("item-2-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
                     document.getElementById("item-3-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
+
+                    // todo enable purchase button if remainingOrders > 0
                 }
             }
         }, false);
 
-        function placeOrder(id) {
+        function prepareOrder(color, size, address) {
             const colors = {
                 3: 'gold',
                 2: 'heather',
                 1: 'aqua'
             }
+
+
+            const callData = {
+                agent_id: "",
+                new_message: "",
+                thread_id: ""
+            };
+
+            const message = {
+                action: "remote_agent_run",
+                data: callData
+            };
+
+            window.parent.postMessage(message, '*');
+
+        }
+
+
+        function placeOrder(id) {
 
             const callData = {
                 // requestId: "NEED_REQUEST_ID",
@@ -98,7 +121,9 @@
                             type: "FunctionCall",
                             params: {
                                 methodName: "order",
-                                args: { },
+                                args: {
+                                    order_id: id,
+                                },
                                 gas: "30000000000000",
                                 deposit: "100000000000000000000", // = 0.01 NEAR,  10000000000000000000000 = 1 Near
                             },
@@ -131,8 +156,6 @@
             window.parent.postMessage(message, '*');
         }
 
-        view();
-
         function collectOrder(id) {
             document.getElementById(`details-${id}`).style.display = 'none';
             document.getElementById(`order-${id}`).style.display = 'inline-block';
@@ -141,6 +164,12 @@
             document.getElementById(`details-${id}`).style.display = 'inline-block';
             document.getElementById(`order-${id}`).style.display = 'none';
         }
+
+        view();
+        if(agent_order_id) {
+            placeOrder(agent_order_id);
+        }
+
     </script>
 </head>
 <body>

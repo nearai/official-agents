@@ -1,12 +1,15 @@
+import re
+import json
 from functools import partial
 
 import tool_library
 from prompts import main_prompt, categories_prompt, suggestions_prompt
 from mock_memory import get_preferences
 from template_output import TemplateOutput
+from create_order import OrderFactory
 
 MODEL = "qwen2p5-72b-instruct"
-
+ORDER_REGEX = re.compile(r"\{\"order\": \{.*}}")
 
 
 class Agent:
@@ -17,6 +20,7 @@ class Agent:
         self.PRODUCT_VECTOR_STORE_ID = "vs_cd16bdf23124480faabd9bff" # local, but not implemented
         self.google_api_key = env.env_vars.get("google_api_key", "")
         self.rapidapi_key = env.env_vars.get("rapidapi_key", "")
+        self.printful_access_token = env.env_vars.get("printful_access_token", "")
         self.test_mode = env.env_vars.get("test_mode", True)
         if isinstance(self.test_mode, str) and self.test_mode.lower() == "False".lower():
             self.test_mode = False
@@ -35,8 +39,21 @@ class Agent:
         self.tool_result = products
 
     def run(self):
-
         chat_history = self.nearai_agent_client.list_messages()
+        last_user_query = self.get_last_search_term(chat_history)
+        if Agent.is_order(last_user_query):
+            result = self.process_order(last_user_query)
+            if result:
+                self.nearai_agent_client.add_system_log(f"Order successful. Order ID: {result['agent_order_id']} Printful Order ID: {result['order_id']}")
+                self.nearai_agent_client.add_reply(f"Order successful. Order ID: {result['agent_order_id']}")
+            else:
+                self.nearai_agent_client.add_reply("Order failed")
+        else:
+            self.run_shopping(last_user_query)
+
+
+    def run_shopping(self, last_search_term):
+
         tool_registry = self.nearai_agent_client.get_tool_registry(True)
 
         # query_products is not yet used
@@ -49,7 +66,6 @@ class Agent:
         tool_registry.register_tool(tools.product_search)
         tools = tool_registry.get_all_tool_definitions()
 
-        last_search_term = self.get_last_search_term(chat_history)
         template_output = TemplateOutput(self.nearai_agent_client)
         user_query = f"## Search for '{last_search_term}'\n"
 
@@ -90,8 +106,31 @@ class Agent:
             suggestion_user_prompt = {"role": "user", "content": suggestion_user_prompt_inp}
             suggestion = self.nearai_agent_client.completion([suggestion_system_prompt, suggestion_user_prompt], model=MODEL)
 
-        template_output.handle_llm_response(products, last_search_term, chat_message, suggestion)
+        template_output.handle_llm_response(products, last_search_term, chat_message, suggestion, thread_id)
         self.nearai_agent_client.request_user_input()
 
-agent = Agent(env)
-agent.run()
+    @staticmethod
+    def is_order(last_user_query):
+        if ORDER_REGEX.match(last_user_query):
+            return True
+        return False
+
+    def process_order(self, last_user_query):
+        parsed_order = json.loads(last_user_query)
+        parsed_order = parsed_order['order']
+        order_factory = OrderFactory(self.printful_access_token)
+        size = parsed_order['size']
+        color = parsed_order['color']
+        name = parsed_order['name']
+        address1 = parsed_order['address1']
+        address2 = parsed_order.get('address2', '')
+        city = parsed_order['city']
+        state = parsed_order.get('state', '')
+        country = parsed_order['country']
+        zip = parsed_order.get('zip', '')
+        return order_factory.create_order(color, size, name, address1, address2, city, state, country, zip, print_response=False)
+
+
+if globals().get('env', None):
+    agent = Agent(globals().get('env', {}))
+    agent.run()

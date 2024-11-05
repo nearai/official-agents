@@ -24,7 +24,7 @@ class TemplateOutput:
         return template.safe_substitute(context)
 
     def handle_llm_response(self, products: str | List | Dict, last_search_term: str, chat_message: str,
-                            suggestion: str) -> None:
+                            suggestion: str, thread_id=None, agent_order_id=None) -> None:
         """Process JSON data extracted from an LLM response and render templates."""
         try:
             template = self.load_template('template.html')
