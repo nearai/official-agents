@@ -67,17 +67,28 @@
         }
     </style>
     <script>
+        const totalQuantity = 10;
         window.addEventListener('message', function(event) {
             if (event.data && event.data.action === 'near_view_response') {
                 const response = event.data;
                 console.log('Received response:', response);
-                if (response.result){
-                    document.getElementById("item-1-inventory").innerText = `${JSON.stringify(response.result)}`;
+                if (response.result != null){
+                    const fulfilledOrders = response.result.length;
+                    const remainingOrders = totalQuantity - fulfilledOrders;
+                    document.getElementById("item-1-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
+                    document.getElementById("item-2-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
+                    document.getElementById("item-3-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
                 }
             }
         }, false);
 
-        function action() {
+        function placeOrder(id) {
+            const colors = {
+                3: 'gold',
+                2: 'heather',
+                1: 'aqua'
+            }
+
             const callData = {
                 // requestId: "NEED_REQUEST_ID",
                 transactions: [{
@@ -121,10 +132,14 @@
         }
 
         view();
-    </script>
-    <script>
-        function collectOrder() {
-            // show order form
+
+        function collectOrder(id) {
+            document.getElementById(`details-${id}`).style.display = 'none';
+            document.getElementById(`order-${id}`).style.display = 'inline-block';
+        }
+        function showItem(id) {
+            document.getElementById(`details-${id}`).style.display = 'inline-block';
+            document.getElementById(`order-${id}`).style.display = 'none';
         }
     </script>
 </head>
@@ -143,7 +158,7 @@
 <!--              class="search-input disabled"-->
 <!--              disabled=true-->
 <!--            >-->
-            <div>$last_search_term</div>
+            <div>You searched for: $last_search_term</div>
         </div>
         <div id="responses">
           <p id="chat_message" style="font-weight: bold; font-size: 1.1rem;">$chat_message</p>
