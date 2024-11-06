@@ -158,8 +158,8 @@
         var placeOrderTimer;
 
         setTimeout(function() {
-            if(agent_order_id && agent_order_id !== "") {
-                console.log('agent_order_id received:');
+            if(agent_order_id && agent_order_id !== "" && !orderCompleted) {
+                console.log('agent_order_id received:', agent_order_id);
                 const productSearch = document.getElementById('product-search');
                 const placingOrder = document.getElementById('placing-order');
                 const preparedModal = document.getElementById('order-prepared');
@@ -231,7 +231,7 @@
             }
 
             const callData = {
-                agent_id: "flatirons.near/shopper/0.0.8",
+                agent_id: "flatirons.near/shopper/0.1.0",
                 new_message: JSON.stringify({"order":
                         {
                             "size": "M",
