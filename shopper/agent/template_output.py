@@ -89,4 +89,4 @@ if __name__ == "__main__":
             data["data"]["products"].insert(0, shirt)
     data = CommonTools.format_products(0, data['data']['products'])
     # print(data)
-    template_output.handle_llm_response(data, 'last_search_term', 'chat_message', 'suggestion')
+    template_output.handle_llm_response(data, 'last_search_term', 'chat_message', 'suggestion', 'thread_id')

@@ -1,7 +1,7 @@
 [{
   "product_id": "1",
-  "product_title": "My AI bought this shirt - NEAR Protocol T-Shirt",
-  "product_description": "Purchase with NEAR - My AI bought this shirt with $NEAR - NEAR Protocol T-Shirt in three colors and seven sizes.",
+  "product_title": "My AI bought this shirt - NEAR Protocol T-Shirt - Aqua (blue) color",
+  "product_description": "Purchase with NEAR - My AI bought this shirt with $NEAR - NEAR Protocol T-Shirt in seven sizes.",
   "product_photos": [
     "https://raw.githubusercontent.com/nearai/official-agents/refs/heads/main/shopper/near-shirt-product/images/blue-shirt-female.jpg",
     "https://raw.githubusercontent.com/nearai/official-agents/refs/heads/main/shopper/near-shirt-product/images/green-shirt-female.jpg",
@@ -84,8 +84,8 @@
 },
   {
     "product_id": "2",
-    "product_title": "My AI bought this shirt - NEAR Protocol T-Shirt",
-    "product_description": "Purchase with NEAR - My AI bought this shirt with $NEAR - NEAR Protocol T-Shirt in three colors and seven sizes.",
+    "product_title": "My AI bought this shirt - NEAR Protocol T-Shirt - Heather (green) color",
+    "product_description": "Purchase with NEAR - My AI bought this shirt with $NEAR - NEAR Protocol T-Shirt in seven sizes.",
     "product_photos": [
       "https://raw.githubusercontent.com/nearai/official-agents/refs/heads/main/shopper/near-shirt-product/images/green-shirt-male.jpg"
     ],
@@ -163,8 +163,8 @@
   },
   {
     "product_id": "3",
-    "product_title": "My AI bought this shirt - NEAR Protocol T-Shirt",
-    "product_description": "Purchase with NEAR - My AI bought this shirt with $NEAR - NEAR Protocol T-Shirt in three colors and seven sizes.",
+    "product_title": "My AI bought this shirt - NEAR Protocol T-Shirt - Gold color",
+    "product_description": "Purchase with NEAR - My AI bought this shirt with $NEAR - NEAR Protocol T-Shirt in seven sizes.",
     "product_photos": [
       "https://raw.githubusercontent.com/nearai/official-agents/refs/heads/main/shopper/near-shirt-product/images/yellow-shirt-female.jpg"
     ],

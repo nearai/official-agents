@@ -133,7 +133,10 @@ class Agent:
         state = parsed_order.get('state', '')
         country = parsed_order['country']
         zip = parsed_order.get('zip', '')
-        return order_factory.create_order(color, size, name, address1, address2, city, state, country, zip, print_response=False)
+        order = order_factory.create_order(color, size, name, address1, address2, city, state, country, zip, print_response=False)
+        # todo write order to state.json
+        # todo collect more order details and return them to user
+        return order
 
 
 if globals().get('env', None):

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Shopping with NEAR AI</title>
+    <title>NearShoppin, your personal shopping assistant</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -43,7 +43,7 @@
         .search-container {
             display: flex;
             width: 100%;
-            max-width: 600px;
+            /*max-width: 600px;*/
             gap: 10px;
             align-items: center;
         }
@@ -66,9 +66,117 @@
             cursor: pointer;
         }
     </style>
+    <style>
+        .modal {
+            display: none;
+        }
+        .modal_background {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #ff6f61, #ffcc5c);
+            color: #333;
+            width: 100%;
+            position: absolute;
+            top:0;
+            left: 0;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            max-width: 500px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1.2s ease-in-out;
+        }
+        h1.container {
+            font-size: 2.5em;
+            color: #ff6f61;
+            margin: 0.2em 0;
+        }
+        .emoji {
+            font-size: 3em;
+            margin: 20px 0;
+        }
+        p.container {
+            font-size: 1.2em;
+            color: #666;
+            margin: 0.5em 0 1.5em;
+        }
+        .order-details {
+            background: #ffcc5c;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 1.5em 0;
+            color: #333;
+        }
+        .button {
+            background-color: #ff6f61;
+            color: #fff;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #ff8b7a;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .prepared {
+            .modal_background {
+                background: linear-gradient(135deg, #6c757d, #adb5bd);
+                color: #333;
+            }
+
+            .order-details {
+                background: #ced4da;
+            }
+
+            .button {
+                background-color: #6c757d;
+            }
+
+            .button:hover {
+                background-color: #868e96;
+            }
+        }
+
+    </style>
     <script>
-        const totalQuantity = 10;
+        const totalQuantity = 10; // todo pull from contract
         const agent_order_id = "$agent_order_id";
+        var orderCompleted = false;
+        var placeOrderTimer;
+
+        setTimeout(function() {
+            if(agent_order_id && agent_order_id !== "") {
+                console.log('agent_order_id received:');
+                const productSearch = document.getElementById('product-search');
+                const placingOrder = document.getElementById('placing-order');
+                const preparedModal = document.getElementById('order-prepared');
+                const completedModal = document.getElementById('order-complete');
+                productSearch.style.display = 'none';
+                placingOrder.style.display = 'none';
+                preparedModal.style.display = 'flex';
+                completedModal.style.display = 'none';
+            }
+        }, 100)
+
+        placeOrderTimer = setTimeout(function() {
+            if(agent_order_id && agent_order_id !== "" && !orderCompleted)
+                console.log('sending order to wallet', agent_order_id, orderCompleted)
+                placeOrder(agent_order_id);
+        }, 500)
+
 
         window.addEventListener('message', function(event) {
             if (event.data && event.data.action === 'near_view_response') {
@@ -77,24 +185,42 @@
                 if (response.result != null){
                     const fulfilledOrders = response.result.length;
                     const remainingOrders = totalQuantity - fulfilledOrders;
-                    document.getElementById("item-1-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
-                    document.getElementById("item-2-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
-                    document.getElementById("item-3-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
-
+                    const i1 = document.getElementById("item-1-inventory");
+                    if(i1) {
+                        i1.innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
+                        document.getElementById("item-2-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
+                        document.getElementById("item-3-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
+                    }
                     // todo enable purchase button if remainingOrders > 0
                 }
             }
-            if (event.data && event.data.action === 'remote_agent_run') {
+
+            if (event.data && event.data.action === 'near_send_transactions_response') {
+                orderCompleted = true;
+                clearTimeout(placeOrderTimer);
                 const response = event.data;
-                console.log('Received response:', response);
+                console.log('Received transaction response:', response);
+                const productSearch = document.getElementById('product-search');
+                const placingOrder = document.getElementById('placing-order');
+                const preparedModal = document.getElementById('order-prepared');
+                const completedModal = document.getElementById('order-complete');
+                productSearch.style.display = 'none';
+                placingOrder.style.display = 'none';
+                preparedModal.style.display = 'none';
+                completedModal.style.display = 'flex';
                 if (response.result != null){
-                    // todo show success message
+                    // transaction hashes
+                    // todo check for transaction cancelled.
                 }
             }
         }, false);
 
         function prepareOrder(form) {
             console.log('Preparing order:', form);
+            const productSearch = document.getElementById('product-search');
+            const placingOrder = document.getElementById('placing-order');
+            productSearch.style.display = 'none';
+            placingOrder.style.display = 'flex';
             // todo need color, size, address
 
             const colors = {
@@ -104,7 +230,7 @@
             }
 
             const callData = {
-                agent_id: "flatirons.near/shopper/0.0.6",
+                agent_id: "flatirons.near/shopper/0.0.7",
                 new_message: JSON.stringify({"order":
                         {
                             "size": "M",
@@ -185,14 +311,23 @@
         }
 
         view();
-        if(agent_order_id && agent_order_id !== "") {
-            placeOrder(agent_order_id);
-        }
+
+        // testing states
+        // setTimeout(function() {
+        //     const productSearch = document.getElementById('product-search');
+        //     const placingOrder = document.getElementById('placing-order');
+        //     const preparedModal = document.getElementById('order-prepared');
+        //     const completedModal = document.getElementById('order-complete');
+        //     productSearch.style.display = 'none';
+        //     placingOrder.style.display = 'flex';
+        //     preparedModal.style.display = 'none';
+        //     completedModal.style.display = 'none';
+        // }, 1000);
 
     </script>
 </head>
 <body>
-    <div class="content">
+    <div id="product-search" class="content">
         <h1>Shopping with NEAR AI</h1>
 
         <!-- Search Bar Implementation -->
@@ -214,6 +349,47 @@
         </div>
         <div id="items-container" class="items-container">
             $items
+        </div>
+    </div>
+    <div id="placing-order" class="modal prepared">
+        <div class="modal_background ">
+            <div class="container">
+<!--                <div class="emoji">&#23F3</div>-->
+                <h1>Preparing your Order</h1>
+                <p>Saving your order information</p>
+                <div class="order-details">
+<!--                    <p><strong>Size:</strong> </p>-->
+                </div>
+                <button class="button" onclick="alert('todo: implement')">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <div id="order-prepared" class="modal prepared">
+        <div class="modal_background ">
+            <div class="container">
+<!--                <div class="emoji">&#23F3</div>-->
+                <h1>Order Ready for Payment</h1>
+                <p>Requesting a signature from your wallet</p>
+                <div class="order-details">
+                    <p><strong>Order ID:</strong> $agent_order_id</p>
+                    <!--      <p><strong>Estimated Delivery:</strong> 3-5 business days</p>-->
+                </div>
+                <button class="button" onclick="alert('todo: implement')">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <div id="order-complete" class="modal">
+        <div class="modal_background">
+            <div class="container">
+<!--                <div class="emoji">&#1F389</div>-->
+                <h1>Order Confirmed!</h1>
+                <p>Thank you for your transaction. Your order has been successfully placed!</p>
+                <div class="order-details">
+                    <p><strong>Order ID:</strong> $agent_order_id</p>
+                    <!--      <p><strong>Estimated Delivery:</strong> 3-5 business days</p>-->
+                </div>
+                <button class="button" onclick="alert('todo: implement')">Continue Shopping</button>
+            </div>
         </div>
     </div>
 </body>
