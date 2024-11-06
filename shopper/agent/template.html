@@ -172,9 +172,10 @@
         }, 100)
 
         placeOrderTimer = setTimeout(function() {
-            if(agent_order_id && agent_order_id !== "" && !orderCompleted)
+            if(agent_order_id && agent_order_id !== "" && !orderCompleted) {
                 console.log('sending order to wallet', agent_order_id, orderCompleted)
                 placeOrder(agent_order_id);
+            }
         }, 500)
 
 
