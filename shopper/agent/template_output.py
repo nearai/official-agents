@@ -24,7 +24,7 @@ class TemplateOutput:
         return template.safe_substitute(context)
 
     def handle_llm_response(self, products: str | List | Dict, last_search_term: str, chat_message: str,
-                            suggestion: str, thread_id=None, agent_order_id=None) -> None:
+                            suggestion: str, thread_id, agent_order_id="") -> None:
         """Process JSON data extracted from an LLM response and render templates."""
         try:
             template = self.load_template('template.html')
@@ -55,7 +55,9 @@ class TemplateOutput:
                                               {'items': items_html,
                                                'last_search_term': last_search_term,
                                                'chat_message': chat_message,
-                                               'suggestion': suggestion})
+                                               'suggestion': suggestion,
+                                               'thread_id': thread_id,
+                                               'agent_order_id': agent_order_id})
         except Exception as e:
             self.nearai_agent_client.add_reply(f"Error rendering template: {e}")
             return

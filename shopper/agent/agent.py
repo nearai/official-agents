@@ -9,7 +9,7 @@ from template_output import TemplateOutput
 from create_order import OrderFactory
 
 MODEL = "qwen2p5-72b-instruct"
-ORDER_REGEX = re.compile(r"\{\"order\": \{.*}}")
+ORDER_REGEX = re.compile(r"\{\"order\":\s*\{.*}}")
 
 
 class Agent:
@@ -26,6 +26,7 @@ class Agent:
             self.test_mode = False
         else:
             self.test_mode = bool(self.test_mode)
+        self.thread_id = env._thread_id
 
 
     def get_last_search_term(self, chat_history):
@@ -35,17 +36,21 @@ class Agent:
         return ''
 
     def process_products(self, products):
-        self.nearai_agent_client.add_system_log(f"process_products callback")
+        print(f"process_products callback")
         self.tool_result = products
 
     def run(self):
         chat_history = self.nearai_agent_client.list_messages()
         last_user_query = self.get_last_search_term(chat_history)
+        print(f"!!! last_user_query:", last_user_query)
         if Agent.is_order(last_user_query):
             result = self.process_order(last_user_query)
             if result:
                 self.nearai_agent_client.add_system_log(f"Order successful. Order ID: {result['agent_order_id']} Printful Order ID: {result['order_id']}")
-                self.nearai_agent_client.add_reply(f"Order successful. Order ID: {result['agent_order_id']}")
+                message = f"Order successful. Order ID: {result['agent_order_id']}"
+                self.nearai_agent_client.add_reply(message)
+                template_output = TemplateOutput(self.nearai_agent_client)
+                template_output.handle_llm_response([], message, "", "", self.thread_id, result.get("agent_order_id", ""))
             else:
                 self.nearai_agent_client.add_reply("Order failed")
         else:
@@ -106,7 +111,7 @@ class Agent:
             suggestion_user_prompt = {"role": "user", "content": suggestion_user_prompt_inp}
             suggestion = self.nearai_agent_client.completion([suggestion_system_prompt, suggestion_user_prompt], model=MODEL)
 
-        template_output.handle_llm_response(products, last_search_term, chat_message, suggestion, thread_id)
+        template_output.handle_llm_response(products, last_search_term, chat_message, suggestion, self.thread_id)
         self.nearai_agent_client.request_user_input()
 
     @staticmethod

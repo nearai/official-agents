@@ -84,20 +84,40 @@
                     // todo enable purchase button if remainingOrders > 0
                 }
             }
+            if (event.data && event.data.action === 'remote_agent_run') {
+                const response = event.data;
+                console.log('Received response:', response);
+                if (response.result != null){
+                    // todo show success message
+                }
+            }
         }, false);
 
-        function prepareOrder(color, size, address) {
+        function prepareOrder(form) {
+            console.log('Preparing order:', form);
+            // todo need color, size, address
+
             const colors = {
                 3: 'gold',
                 2: 'heather',
                 1: 'aqua'
             }
 
-
             const callData = {
-                agent_id: "",
-                new_message: "",
-                thread_id: ""
+                agent_id: "flatirons.near/shopper/0.0.6",
+                new_message: JSON.stringify({"order":
+                        {
+                            "size": "M",
+                            "color": "gold",
+                            "name": "Jane Smith",
+                            "address1": "123 Main St",
+                            "city": "Anytown",
+                            "state": "CA",
+                            "country": "US",
+                            "zip": "90210"
+                        }}),
+                thread_id: "$thread_id",
+                max_iterations: 1
             };
 
             const message = {
@@ -106,7 +126,6 @@
             };
 
             window.parent.postMessage(message, '*');
-
         }
 
 
@@ -166,7 +185,7 @@
         }
 
         view();
-        if(agent_order_id) {
+        if(agent_order_id && agent_order_id !== "") {
             placeOrder(agent_order_id);
         }
 
