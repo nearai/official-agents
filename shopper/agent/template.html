@@ -154,8 +154,8 @@
     <script>
         const totalQuantity = 10; // todo pull from contract
         const agent_order_id = "$agent_order_id";
-        var orderCompleted = false;
-        var placeOrderTimer;
+        let orderCompleted = false;
+        let placeOrderTimer;
 
         setTimeout(function() {
             if(agent_order_id && agent_order_id !== "" && !orderCompleted) {
@@ -168,6 +168,9 @@
                 placingOrder.style.display = 'none';
                 preparedModal.style.display = 'flex';
                 completedModal.style.display = 'none';
+            }
+            else {
+                view();
             }
         }, 100)
 
@@ -216,36 +219,36 @@
             }
         }, false);
 
-        function prepareOrder(form) {
-            console.log('Preparing order:', form);
+        function prepareOrder(id) {
+            console.log('Preparing order:', id);
+            let elements = document.getElementById("order-form-" + id).elements;
+            let formValues ={};
+            for(let i = 0 ; i < elements.length ; i++){
+                let item = elements.item(i);
+                formValues[item.name] = item.value;
+            }
+            // todo require name, address1, city, country, zip.
+
             const productSearch = document.getElementById('product-search');
             const placingOrder = document.getElementById('placing-order');
             productSearch.style.display = 'none';
             placingOrder.style.display = 'flex';
-            // todo need color, size, address
 
             const colors = {
                 3: 'gold',
                 2: 'heather',
                 1: 'aqua'
             }
+            formValues['color'] =  colors[id];
+            delete formValues[""];
 
             const callData = {
                 agent_id: "flatirons.near/shopper/0.1.0",
-                new_message: JSON.stringify({"order":
-                        {
-                            "size": "M",
-                            "color": "gold",
-                            "name": "Jane Smith",
-                            "address1": "123 Main St",
-                            "city": "Anytown",
-                            "state": "CA",
-                            "country": "US",
-                            "zip": "90210"
-                        }}),
+                new_message: JSON.stringify({"order": formValues}),
                 thread_id: "$thread_id",
                 max_iterations: 1
             };
+            console.log('Sending order:', callData);
 
             const message = {
                 action: "remote_agent_run",
@@ -311,8 +314,6 @@
             document.getElementById(`order-${id}`).style.display = 'none';
         }
 
-        view();
-
         // testing states
         // setTimeout(function() {
         //     const productSearch = document.getElementById('product-search');
@@ -356,8 +357,8 @@
         <div class="modal_background ">
             <div class="container">
 <!--                <div class="emoji">&#23F3</div>-->
-                <h1>Preparing your Order</h1>
-                <p>Saving your order information</p>
+                <h1>Preparing the Order</h1>
+                <p>Saving order information</p>
                 <div class="order-details">
 <!--                    <p><strong>Size:</strong> </p>-->
                 </div>
@@ -370,7 +371,7 @@
             <div class="container">
 <!--                <div class="emoji">&#23F3</div>-->
                 <h1>Order Ready for Payment</h1>
-                <p>Requesting a signature from your wallet</p>
+                <p>This needs a signature from your wallet</p>
                 <div class="order-details">
                     <p><strong>Order ID:</strong> $agent_order_id</p>
                     <!--      <p><strong>Estimated Delivery:</strong> 3-5 business days</p>-->
@@ -384,7 +385,7 @@
             <div class="container">
 <!--                <div class="emoji">&#1F389</div>-->
                 <h1>Order Confirmed!</h1>
-                <p>Thank you for your transaction. Your order has been successfully placed!</p>
+                <p>I have successfully placed the order for you.</p>
                 <div class="order-details">
                     <p><strong>Order ID:</strong> $agent_order_id</p>
                     <!--      <p><strong>Estimated Delivery:</strong> 3-5 business days</p>-->

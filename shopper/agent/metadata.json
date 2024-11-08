@@ -10,6 +10,7 @@
   ],
   "details": {
     "display_name": "NearShoppin",
+    "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Shopping-basket.svg/270px-Shopping-basket.svg.png",
     "agent": {
       "welcome": {
         "title": "NearShoppin, your Personal Shopping assistant.",
@@ -18,10 +19,10 @@
       "//initial_user_message": "init",
       "defaults": {
         "max_iterations": 1,
-        "model": "qwen2p5-72b-instruct",
+        "model": "llama-v3p2-3b-instruct",
         "model_provider": "fireworks",
         "model_temperature": 0.0,
-        "model_max_tokens": 20000
+        "model_max_tokens": 500
       }
     }
   },

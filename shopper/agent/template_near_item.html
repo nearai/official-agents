@@ -28,22 +28,27 @@
             <img src='$image' style="max-width: 50%; max-height: 180px" alt="product image"/>
         </div>
         <br/><br/>
-        <form onsubmit="prepareOrder">
+        <form id="order-form-$id">
         <label for="size">Size:</label><br/>
         <select id="size" name="size" style="width: 92%;">
-            <option value="s">Small</option>
-            <option value="m">Medium</option>
-            <option value="l">Large</option>
-            <option value="xl">X-Large</option>
-            <option value="2xl">2X-Large</option>
-            <option value="3xl">3X-Large</option>
-            <option value="4xl">4X-Large</option>
+            <option value="S">Small</option>
+            <option value="M">Medium</option>
+            <option value="L">Large</option>
+            <option value="XL">X-Large</option>
+            <option value="2XL">2X-Large</option>
+            <option value="3XL">3X-Large</option>
+            <option value="4XL">4X-Large</option>
         </select><br/><br/>
         <label for="name">Name:</label><br/>
         <input type="text" id="name" name="name" placeholder="Enter full name for shipping" style="width: 90%;"><br/><br/>
         <label for="address">Shipping Address:</label><br/>
-        <textarea id="address" name="address" rows="6" placeholder="Enter full shipping address" style="width: 90%;"></textarea>
-            <div>
+        <input type="text" id="address" name="address1" placeholder="Street Address" style="width: 90%;"></input>
+        <input type="text" id="address2" name="address2" placeholder="Address2" style="width: 90%;"></input>
+        <input type="text" id="city" name="city" placeholder="City" style="width: 90%;"></input>
+        <input type="text" id="state" name="state" placeholder="State" style="width: 90%;"></input>
+        <input type="text" id="zip" name="zip" placeholder="Zip Code" style="width: 90%;"></input>
+        <input type="text" id="country" name="country" placeholder="Country" style="width: 90%;"></input>
+           <div>
                 <div style="float: left">
                     <button style="
                 display: inline-block;

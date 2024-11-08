@@ -42,7 +42,7 @@ class Agent:
     def run(self):
         chat_history = self.nearai_agent_client.list_messages()
         last_user_query = self.get_last_search_term(chat_history)
-        print(f"!!! last_user_query:", last_user_query)
+        self.nearai_agent_client.add_reply(f"Searching for your personalized results...")
         if Agent.is_order(last_user_query):
             result = self.process_order(last_user_query)
             if result:
@@ -81,6 +81,7 @@ class Agent:
             model=MODEL,
             agent_role_name="assistant",
             add_responses_to_messages=False)
+        self.nearai_agent_client.add_reply(f"Found results, building shopping page...")
 
         # Format the LLM response
         chat_message = llm_response.split("<")[0].replace("Shopping Assistant:", "").strip()
