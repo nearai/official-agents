@@ -152,6 +152,7 @@
 
     </style>
     <script>
+        const agentId = "flatirons.near/shopper/0.1.2";
         const totalQuantity = 10; // todo pull from contract
         const agent_order_id = "$agent_order_id";
         let orderCompleted = false;
@@ -181,7 +182,6 @@
             }
         }, 500)
 
-
         window.addEventListener('message', function(event) {
             if (event.data && event.data.action === 'near_view_response') {
                 const response = event.data;
@@ -195,7 +195,17 @@
                         document.getElementById("item-2-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
                         document.getElementById("item-3-inventory").innerText = `Remaining: ${remainingOrders}/${totalQuantity}`;
                     }
-                    // todo enable purchase button if remainingOrders > 0
+                    const b1 = document.getElementById("prepare-order-button-1");
+                    if(b1) {
+                        const b2 = document.getElementById("prepare-order-button-2");
+                        const b3 = document.getElementById("prepare-order-button-3");
+                        b1.disabled = remainingOrders <= 0;
+                        b2.disabled = remainingOrders <= 0;
+                        b3.disabled = remainingOrders <= 0;
+                        b1.innerHTML = remainingOrders <= 0 ? 'Sold Out' : 'Order';
+                        b2.innerHTML = remainingOrders <= 0 ? 'Sold Out' : 'Order';
+                        b3.innerHTML = remainingOrders <= 0 ? 'Sold Out' : 'Order';
+                    }
                 }
             }
 
@@ -227,7 +237,21 @@
                 let item = elements.item(i);
                 formValues[item.name] = item.value;
             }
-            // todo require name, address1, city, country, zip.
+            const allFields = ['name', 'address1', 'address2', 'city', 'state', 'zip', 'country'];
+            allFields.forEach(field => {
+                document.getElementById(field + '-' + id).style.border = '1px solid rgb(118, 118, 118)';
+            });
+            const requiredFields = ['name', 'address1', 'city', 'country', 'zip'];
+            let hasAllRequiredFields = true;
+            requiredFields.forEach(field => {
+                if(!formValues[field]) {
+                    document.getElementById(field + '-' + id).style.border = '1px solid red';
+                    hasAllRequiredFields = false;
+                }
+            });
+            if(!hasAllRequiredFields) {
+                return;
+            }
 
             const productSearch = document.getElementById('product-search');
             const placingOrder = document.getElementById('placing-order');
@@ -243,7 +267,7 @@
             delete formValues[""];
 
             const callData = {
-                agent_id: "flatirons.near/shopper/0.1.1",
+                agent_id: agentId,
                 new_message: JSON.stringify({"order": formValues}),
                 thread_id: "$thread_id",
                 max_iterations: 1
@@ -256,6 +280,13 @@
             };
 
             window.parent.postMessage(message, '*');
+        }
+
+        function cancelOrder() {
+            const productSearch = document.getElementById('product-search');
+            const placingOrder = document.getElementById('placing-order');
+            productSearch.style.display = 'flex';
+            placingOrder.style.display = 'none';
         }
 
 
@@ -314,6 +345,22 @@
             document.getElementById(`order-${id}`).style.display = 'none';
         }
 
+        function continueShopping() {
+            const callData = {
+                agent_id: agentId,
+                new_message: "continue shopping",
+                thread_id: "$thread_id",
+                max_iterations: 1
+            };
+
+            const message = {
+                action: "remote_agent_run",
+                data: callData
+            };
+
+            window.parent.postMessage(message, '*');
+        }
+
         // testing states
         // setTimeout(function() {
         //     const productSearch = document.getElementById('product-search');
@@ -362,7 +409,7 @@
                 <div class="order-details">
 <!--                    <p><strong>Size:</strong> </p>-->
                 </div>
-                <button class="button" onclick="alert('todo: implement')">Cancel</button>
+                <button class="button" onclick="cancelOrder()">Cancel</button>
             </div>
         </div>
     </div>
@@ -376,7 +423,7 @@
                     <p><strong>Order ID:</strong> $agent_order_id</p>
                     <!--      <p><strong>Estimated Delivery:</strong> 3-5 business days</p>-->
                 </div>
-                <button class="button" onclick="alert('todo: implement')">Cancel</button>
+                <button class="button" onclick="cancelOrder()">Cancel</button>
             </div>
         </div>
     </div>
@@ -390,7 +437,7 @@
                     <p><strong>Order ID:</strong> $agent_order_id</p>
                     <!--      <p><strong>Estimated Delivery:</strong> 3-5 business days</p>-->
                 </div>
-                <button class="button" onclick="alert('todo: implement')">Continue Shopping</button>
+                <button class="button" onclick="continueShopping()">Continue Shopping</button>
             </div>
         </div>
     </div>

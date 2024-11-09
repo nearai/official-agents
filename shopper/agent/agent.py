@@ -42,7 +42,6 @@ class Agent:
     def run(self):
         chat_history = self.nearai_agent_client.list_messages()
         last_user_query = self.get_last_search_term(chat_history)
-        self.nearai_agent_client.add_reply(f"Searching for your personalized results...")
         if Agent.is_order(last_user_query):
             result = self.process_order(last_user_query)
             if result:
@@ -58,6 +57,7 @@ class Agent:
 
 
     def run_shopping(self, last_search_term):
+        self.nearai_agent_client.add_reply(f"Searching for your personalized results...")
 
         tool_registry = self.nearai_agent_client.get_tool_registry(True)
 
