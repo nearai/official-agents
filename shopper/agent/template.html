@@ -152,7 +152,7 @@
 
     </style>
     <script>
-        const agentId = "flatirons.near/shopper/0.1.2";
+        const agentId = "flatirons.near/shopper/0.1.3";
         const totalQuantity = 10; // todo pull from contract
         const agent_order_id = "$agent_order_id";
         let orderCompleted = false;
@@ -345,10 +345,17 @@
             document.getElementById(`order-${id}`).style.display = 'none';
         }
 
+        function cancelDraftOrder() {
+            sendAgentMessage('repeat search');
+        }
+
         function continueShopping() {
+            sendAgentMessage('continue shopping');
+        }
+        function sendAgentMessage(userMessage) {
             const callData = {
                 agent_id: agentId,
-                new_message: "continue shopping",
+                new_message: userMessage,
                 thread_id: "$thread_id",
                 max_iterations: 1
             };
@@ -423,11 +430,11 @@
                     <p><strong>Order ID:</strong> $agent_order_id</p>
                     <!--      <p><strong>Estimated Delivery:</strong> 3-5 business days</p>-->
                 </div>
-                <button class="button" onclick="cancelOrder()">Cancel</button>
+                <button class="button" onclick="cancelDraftOrder()">Cancel</button>
             </div>
         </div>
     </div>
-    <div id="order-complete" class="modal">
+    <div id="order-complete" class="modal" style="z-index: 10000">
         <div class="modal_background">
             <div class="container">
 <!--                <div class="emoji">&#1F389</div>-->

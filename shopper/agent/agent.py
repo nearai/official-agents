@@ -35,6 +35,13 @@ class Agent:
                 return message['content']
         return ''
 
+    def find_last_search(self, chat_history):
+        for message in reversed(chat_history):
+            if (message['role'] == 'user' and not Agent.is_order(message['content'])
+                    and not message['content'] == "continue shopping" and not message['content'] == "repeat search"):
+                return message['content']
+        return ''
+
     def process_products(self, products):
         print(f"process_products callback")
         self.tool_result = products
@@ -44,15 +51,18 @@ class Agent:
         last_user_query = self.get_last_search_term(chat_history)
         if Agent.is_order(last_user_query):
             result = self.process_order(last_user_query)
-            if result:
+            if result and result.get("order_id"):
                 self.nearai_agent_client.add_system_log(f"Order successful. Order ID: {result['agent_order_id']} Printful Order ID: {result['order_id']}")
                 message = f"Order successful. Order ID: {result['agent_order_id']}"
                 self.nearai_agent_client.add_reply(message)
                 template_output = TemplateOutput(self.nearai_agent_client)
                 template_output.handle_llm_response([], message, "", "", self.thread_id, result.get("agent_order_id", ""))
             else:
-                self.nearai_agent_client.add_reply("Order failed")
+                message = result.get("message", "") if result and result.get("message") else ""
+                self.nearai_agent_client.add_reply(f"Order failed: {message}")
         else:
+            if last_user_query == "continue shopping" or last_user_query == "repeat search":
+                last_user_query = self.find_last_search(chat_history)
             self.run_shopping(last_user_query)
 
 

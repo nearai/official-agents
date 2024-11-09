@@ -41,14 +41,14 @@
             </select><br/><br/>
             <label>Name:</label><br/>
             <input type="text" id="name-$id" name="name" placeholder="Enter full name for shipping"
-                   style="width: 90%;"><br/><br/>
+                   style="width: 90%;" required><br/><br/>
             <label>Shipping Address:</label><br/>
-            <input type="text" id="address1-$id" name="address1" placeholder="Street Address" style="width: 90%;"></input>
+            <input type="text" id="address1-$id" name="address1" placeholder="Street Address" style="width: 90%;" required></input>
             <input type="text" id="address2-$id" name="address2" placeholder="Address2" style="width: 90%;"></input>
-            <input type="text" id="city-$id" name="city" placeholder="City" style="width: 90%;"></input>
-            <input type="text" id="state-$id" name="state" placeholder="State" style="width: 90%;"></input>
-            <input type="text" id="zip-$id" name="zip" placeholder="Zip Code" style="width: 90%;"></input>
-            <input type="text" id="country-$id" name="country" placeholder="Country" style="width: 90%;"></input>
+            <input type="text" id="city-$id" name="city" placeholder="City" style="width: 90%;" required></input>
+            <input type="text" id="state-$id" name="state" placeholder="2 or 3 letter State code" style="width: 90%;" maxlength="3"></input>
+            <input type="text" id="zip-$id" name="zip" placeholder="Zip Code" style="width: 90%;" required></input>
+            <input type="text" id="country-$id" name="country" placeholder="2 letter Country code" style="width: 90%;" required maxlength="2"></input>
             <div>
                 <div style="float: left">
                     <button style="

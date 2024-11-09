@@ -1,7 +1,7 @@
 {
   "category": "agent",
   "name": "shopper",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "I can help you find and buy products to solve your problems",
   "tags": [
     "shopping",

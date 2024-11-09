@@ -107,7 +107,10 @@ class OrderFactory:
         else:
             print(f"Failed to create order: {response.status_code}")
             print(response.text)
-            return None
+            return {
+                "error": response.status_code,
+                "message": response.text
+            }
 
 
 if __name__ == "__main__":
