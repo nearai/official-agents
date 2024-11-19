@@ -1,0 +1,32 @@
+{
+  "category": "agent",
+  "description": "This agent tests various execution cases.",
+  "tags": [
+    "development",
+    "test"
+  ],
+  "details": {
+    "agent": {
+      "defaults": {
+        "max_iterations": 1,
+        "models": [
+          {
+            "model": "llama-v3-70b-instruct",
+            "model_max_tokens": 1024,
+            "model_provider": "fireworks",
+            "model_temperature": 1
+          }
+        ]
+      },
+      "welcome": {
+        "description": "This agent tests various execution cases.",
+        "title": "Tests"
+      }
+    },
+    "display_name": "Test Agent",
+    "icon": ""
+  },
+  "show_entry": true,
+  "name": "test-agent",
+  "version": "0.0.1"
+}
