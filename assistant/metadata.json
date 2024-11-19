@@ -1,0 +1,24 @@
+{
+  "category": "agent",
+  "description": "The only assistant you need",
+  "tags": [],
+  "details": {
+    "display_name": "NearAI Assistant",
+    "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/User-student-assistant.svg/170px-User-student-assistant.svg.png",
+    "agent": {
+      "welcome": {
+        "title": "NearAI. The only Assistant you need.",
+        "description": "What can I help you with today? I can answer questions and call other agents to accomplish tasks for you. For example: 'create a memecoin about space', 'shop for new shirts', 'swap NEAR for BTC', 'remember my favorite color is purple'."
+      },
+      "defaults": {
+        "max_iterations": 1,
+        "model": "llama-v3p2-3b-instruct",
+        "model_max_tokens": 16384,
+        "model_provider": "fireworks"
+      }
+    }
+  },
+  "show_entry": true,
+  "name": "assistant",
+  "version": "0.0.5"
+}
