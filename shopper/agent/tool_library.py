@@ -86,6 +86,9 @@ class CommonTools:
         products = data.get('data', {}).get('products', [])
         self.nearai_agent_client.add_system_log (f"Found {len(products)} products")
 
+        # disabling until agent makes use of it
+        # self.nearai_agent_client.write_file("last_search_results.json", json.dumps(products))
+
         with open('shirt-data.json', 'r', encoding='utf-8') as file:
             shirt_data = json.loads(file.read())
             for shirt in shirt_data:
