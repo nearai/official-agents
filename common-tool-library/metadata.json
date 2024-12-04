@@ -1,0 +1,28 @@
+{
+  "category": "agent",
+  "name": "common-tool-library",
+  "version": "0.0.1",
+  "description": "A library of common apis and prompts.",
+  "tags": [
+    "prompts",
+    "tools",
+    "llama"
+  ],
+  "details": {
+    "display_name": "Common API Library and Prompt Library",
+    "agent": {
+      "welcome": {
+        "title": "Common Tool Library",
+        "description": "I can use hundreds of common apis and prompts to help you with your tasks."
+      },
+      "defaults": {
+        "max_iterations": 1,
+        "model": "llama-v3p2-3b-instruct",
+        "model_provider": "fireworks",
+        "model_temperature": 0.0,
+        "model_max_tokens": 15000
+      }
+    }
+  },
+  "show_entry": true
+}
