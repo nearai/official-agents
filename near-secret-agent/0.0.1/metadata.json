@@ -1,0 +1,16 @@
+{
+  "name": "near-secret-agent",
+  "version": "0.0.1",
+  "description": "An example of how to respond to Twitter mentions",
+  "category": "agent",
+  "tags": [],
+  "details": {
+    "agent": {
+      "welcome": {
+        "title": "Near Secret Agent",
+        "description": "Testing."
+      }
+    }
+  },
+  "show_entry": true
+}
