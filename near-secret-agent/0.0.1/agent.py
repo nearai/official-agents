@@ -19,6 +19,7 @@ class Agent:
         self.revealed = False
 
     def reveal_secrets(self):
+        """Reveal the secrets of NEARvana"""
         # self.env.env_vars.get("TODAYS_SECRET", "NEAR is the blockchain for AI")
         self.revealed = True
         self.env.add_reply("You have discovered today's secret")
@@ -32,7 +33,7 @@ class Agent:
 
         prompt = {"role": "system", "content": PROMPT}
         result = self.env.completion_and_run_tools(
-            [prompt] + env.list_messages()[0],
+            [prompt] + [env.list_messages()[0]],
             tools=tools,
             model=MODEL,
             agent_role_name="assistant",
