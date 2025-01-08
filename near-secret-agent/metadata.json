@@ -10,6 +10,11 @@
         "title": "Near Secret Agent",
         "description": "Testing."
       }
+    },
+    "triggers": {
+      "events" : {
+        "x_mentions": ["@nearsecretagent"]
+      }
     }
   },
   "show_entry": true
