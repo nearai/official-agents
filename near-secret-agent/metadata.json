@@ -1,0 +1,21 @@
+{
+  "name": "near-secret-agent",
+  "version": "0.0.1",
+  "description": "An example agent that responds to Twitter mentions",
+  "category": "agent",
+  "tags": ["twitter"],
+  "details": {
+    "agent": {
+      "welcome": {
+        "title": "No chat interface",
+        "description": "To use tweet a message and mention @nearsecretagent."
+      }
+    },
+    "triggers": {
+      "events" : {
+        "x_mentions": ["@nearsecretagent"]
+      }
+    }
+  },
+  "show_entry": true
+}
