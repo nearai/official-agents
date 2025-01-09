@@ -42,10 +42,12 @@ class Agent:
         # self.env.env_vars.get("TODAYS_SECRET", "NEAR is the blockchain for AI")
         self.revealed = True
 
-    def validate_hub_user(self, auth):
+    def validate_hub_user(self, message):
         """Only accept Twitter messages if they come from the hub user"""
-        parsed = json.loads(auth)
-        if parsed["account_id"] != "flatirons.near": # todo replace with hub user
+        authorized_accounts = self.env.env_vars.get("HUB_ACCOUNT", None)
+        tweet_sent_by = message.get("account_id", None)
+        if not tweet_sent_by or tweet_sent_by not in authorized_accounts:
+            print(f"Unauthorized user: {message}")
             raise ValueError("Unauthorized")
 
     def tweet_reply(self, event, reply):
@@ -63,8 +65,8 @@ class Agent:
         tweet_key = None
         try:
             env = self.env
-            self.validate_hub_user(env.client._auth)
             last_message = env.list_messages()[-1]
+            # self.validate_hub_user(last_message)
 
             print(last_message)
             if last_message is None:
@@ -137,7 +139,7 @@ def user_rate_limit_exceeded(tweet):
 
 def rate_limit_reply(tweet):
     # if the user has received a rate limit reply already today, do nothing.
-    # response = "So many questions, try again tomorrow."  # pull from agent metadata?
+    # response = "So many questions, try again tomorrow."  # pull from agent metadata
     # todo implement
     pass
 
