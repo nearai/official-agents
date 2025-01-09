@@ -1,0 +1,31 @@
+{
+  "category": "agent",
+  "description": "This agent tests features.",
+  "tags": [
+    "test"
+  ],
+  "details": {
+    "agent": {
+      "defaults": {
+        "max_iterations": 1,
+        "models": [
+          {
+            "model": "llama-v3-70b-instruct",
+            "model_max_tokens": 1024,
+            "model_provider": "fireworks",
+            "model_temperature": 1
+          }
+        ]
+      },
+      "welcome": {
+        "description": "This agent tests features: agent_data, ",
+        "title": "Tests"
+      }
+    },
+    "display_name": "Agent Tests",
+    "icon": ""
+  },
+  "show_entry": true,
+  "name": "agent-tests",
+  "version": "0.0.1"
+}
