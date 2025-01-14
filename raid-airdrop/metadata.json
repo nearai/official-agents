@@ -1,0 +1,18 @@
+{
+  "category": "agent",
+  "description": "AI Agent to make Twitter Airdrops",
+  "tags": [
+    "agent"
+  ],
+  "details": {
+    "agent": {
+      "welcome": {
+        "title": "AI Agent to make Twitter Airdrops",
+        "description": ""
+      }
+    }
+  },
+  "show_entry": true,
+  "name": "airdrop",
+  "version": "0.13"
+}

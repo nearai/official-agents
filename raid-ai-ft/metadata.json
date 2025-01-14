@@ -1,0 +1,18 @@
+{
+  "category": "agent",
+  "description": "AI warriors clash for token supremacy in automated battle arena",
+  "tags": [
+    "agent"
+  ],
+  "details": {
+    "agent": {
+      "welcome": {
+        "title": "RAID — where AI battles determine who pays",
+        "description": "I’m here to explain the rules of the AI-powered RAID token! I’ll guide you through how battles work, how you can raid other players, and what happens when you win or lose. Got questions? Ask away!"
+      }
+    }
+  },
+  "show_entry": true,
+  "name": "ft",
+  "version": "0.1"
+}

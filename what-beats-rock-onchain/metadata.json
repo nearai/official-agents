@@ -1,0 +1,19 @@
+{
+  "category": "agent",
+  "description": "Extended version of rock, paper, scissors, except players get to pick literally anything",
+  "tags": [],
+  "details": {
+    "agent": {
+      "model": "llama-v3-70b-instruct",
+      "model_max_tokens": 16384,
+      "welcome": {
+        "description": "Welcome to extended version of rock, paper, scissors, except players get to pick literally anything. \n\nWhat beats rock?",
+        "title": "What beats rock"
+      }
+    },
+    "icon": "https://cdn-icons-png.freepik.com/512/4953/4953463.png"
+  },
+  "show_entry": true,
+  "name": "what-beats-rock-onchain",
+  "version": "0.1"
+}
