@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+
+    <link
+            crossorigin="anonymous"
+            href="https://unpkg.com/@near-pagoda/ui@2.0.5/dist/styles.css"
+            media="all"
+            rel="stylesheet"
+    />
+
+    <script type="importmap">
+        {
+          "imports": {
+            "react": "https://esm.sh/react@18.3.1",
+            "react-dom": "https://esm.sh/react-dom@18.3.1",
+            "@near-pagoda/ui": "https://esm.sh/@near-pagoda/ui@2.0.5",
+            "big.js": "https://esm.sh/big.js@6.2.2?pin=v68",
+            "near-api-js": "https://esm.sh/near-api-js@5.0.1"
+          }
+        }
+    </script>
+
+
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script data-presets="react" data-type="module" type="text/babel">
+        import React from "react";
+        import ReactDOM from "react-dom";
+        import {Button, Card, Container, Flex, PagodaUiProvider, Text, Toaster, InputTextarea} from "@near-pagoda/ui";
+        import * as nearApi from "near-api-js";
+
+        async function nearCall(recipient, method, params, gas, deposit) {
+            console.log("nearCall", recipient, method, params, gas, deposit);
+            return new Promise((resolve, reject) => {
+                const messageListener = function (event) {
+                    if (event.data && event.data.action === 'near_send_transactions_response') {
+                        const response = event.data;
+                        console.log('Received response:', response);
+
+                        if (response.result) {
+                            resolve(response.result);
+                        } else {
+                            reject(new Error("No result in response"));
+                        }
+
+                        window.removeEventListener('message', messageListener);
+                    }
+                };
+
+                window.addEventListener('message', messageListener, false);
+
+                let real_gas = (Number(gas || "30") * 10 ** 12).toFixed(0)
+                if (!real_gas) {
+                    real_gas = "30000000000000"
+                }
+
+                let real_deposit;
+
+                if (method === "ft_transfer_call" || deposit === 0.000000000000000000000001) {
+                    real_deposit = "1"
+                } else {
+                    real_deposit = nearApi.utils.format.parseNearAmount((deposit || "0").toString())
+                    if (!real_deposit) {
+                        real_deposit = "0"
+                    }
+                }
+
+                const callData = {
+                    transactions: [{
+                        receiverId: recipient,
+                        actions: [
+                            {
+                                type: "FunctionCall",
+                                params: {
+                                    methodName: method,
+                                    args: params,
+                                    gas: real_gas,
+                                    deposit: real_deposit,
+                                },
+                            },
+                        ],
+                    }]
+                };
+
+                const message = {
+                    action: "near_send_transactions",
+                    data: callData
+                };
+
+                window.parent.postMessage(message, '*');
+            });
+        }
+
+        const useRouter = () => {
+            return {
+                push: (path) => history.pushState({}, "", path),
+                prefetch: () => {
+                },
+            };
+        };
+
+        const App = () => {
+            let responses = JSON.parse(`{{%responses%}}`).join("\n");
+            let prompt = "{{%prompt%}}";
+            let value = "{{%value%}}";
+            let public_key = "{{%public_key%}}";
+
+            const publish = () => {
+                let args = {
+                    name: "{{%agent_name%}}",
+                    completion: {
+                        signature: "{{%signature%}}",
+                        agent_name: "{{%agent_id%}}",
+                        model: "{{%model%}}",
+                        messages: {{%messages%}},
+                        temperature: parseFloat("{{%temperature%}}"),
+                        max_tokens: parseInt("{{%max_tokens%}}"),
+                        completion: {{%completion%}}
+                    }
+                };
+                nearCall("oracle.ai-is-near.near", "add_value", args, 30, 0)
+            }
+
+            return (
+                <PagodaUiProvider
+                    value={{
+                        Link: (props) => <a {...props} />,
+                        useRouter,
+                    }}
+                >
+                    <Container size="m">
+                        <Card gap="l" style={{textAlign: "center"}}>
+                            <Text as="span" size="text-2xl" color="sand-10" weight={400}>
+                                {prompt} is {value}
+                            </Text>
+
+                            <Flex direction="column" gap="m" align={"center"}>
+                                <InputTextarea
+                                    label={"AI Agent Log"}
+                                    value={responses}
+                                />
+
+                            </Flex>
+
+                            <Flex direction="column" gap="m" align="center">
+                                <Button
+                                    size="large"
+                                    label={`Publish`}
+                                    variant="affirmative"
+                                    onClick={() => publish()}
+                                />
+                            </Flex>
+
+                            <Flex direction="column" gap="m" align={"center"}>
+                                <Text size="text-s">Agent public key: {public_key}</Text>
+                            </Flex>
+                        </Card>
+                    </Container>
+
+                    <Toaster/>
+                </PagodaUiProvider>
+            );
+        };
+
+        const container = document.getElementById("app");
+        const root = ReactDOM.createRoot(container);
+        root.render(<App/>);
+    </script>
+
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app"></div>
+</body>
+</html>

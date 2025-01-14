@@ -1,0 +1,18 @@
+{
+  "category": "agent",
+  "description": "Near Agent",
+  "tags": [
+    "agent"
+  ],
+  "details": {
+    "agent": {
+      "welcome": {
+        "title": "NEAR agent",
+        "description": "Make NEAR blockchain transactions"
+      }
+    }
+  },
+  "show_entry": true,
+  "name": "near-agent",
+  "version": "0.023"
+}

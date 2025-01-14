@@ -1,0 +1,19 @@
+{
+  "category": "agent",
+  "description": "Agent to find the name of the current President of the United States and store it in the AI oracle.",
+  "tags": [],
+  "details": {
+    "agent": {
+      "framework": "web-agent",
+      "welcome": {
+        "description": "",
+        "title": "I will tell you the current President of the United States and store it in the AI oracle."
+      }
+    },
+    "env_vars": {
+    }
+  },
+  "show_entry": true,
+  "name": "potus",
+  "version": "0.4"
+}
