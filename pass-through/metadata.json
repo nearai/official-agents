@@ -1,0 +1,25 @@
+{
+  "name": "pass-through",
+  "version": "0.0.1",
+  "description": "A test of assistant style pass through messages to other agents.",
+  "category": "agent",
+  "tags": ["assistant"],
+  "details": {
+    "display_name": "Pass Through Testing",
+    "icon": "https://upload.wikimedia.org/wikipedia/commons/f/fe/Arrows.svg",
+    "agent": {
+      "welcome": {
+        "title": "This is a testing agent inter agent communication.",
+        "description": "How can I help you today?"
+      },
+      "initial_user_message": "/init",
+      "defaults": {
+        "model": "llama-3p2-3b-instruct",
+        "model_provider": "fireworks",
+        "model_temperature": 1.0,
+        "model_max_tokens": 2048
+      }
+    }
+  },
+  "show_entry": true
+}
