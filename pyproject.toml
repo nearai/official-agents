@@ -1,0 +1,18 @@
+[project]
+name = "official-agents"
+version = "0.1.0"
+description = "NEAR AI Official example and template agents"
+authors = [{name = "Support", email = "support@near.ai"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10,<3.12"
+dependencies = [
+    "pydantic>=2.8.2",
+    "requests>=2.31.0,<3.0.0",
+    "nearai>=0.1.6",
+]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
