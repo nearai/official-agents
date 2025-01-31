@@ -1,0 +1,24 @@
+{
+  "name": "agentkit-py",
+  "version": "0.0.1",
+  "description": "A template for using Coinbase AgentKit and creating a MemeCoin",
+  "category": "agent",
+  "tags": ["agentkit", "memecoin","template"],
+  "details": {
+    "display_name": "AgentKit MemeCoin Template",
+    "icon": "https://images.ctfassets.net/q5ulk4bp65r7/66trCMsRCQW5HlGoODNg2o/32de3c901e06cb67714eb8a20a886cd4/AgentKit.png?w=768&fm=png",
+    "agent": {
+      "welcome": {
+        "title": "This agent launches MemeCoins and uses Coinbase AgentKit",
+        "description": "What sort of MemeCoin can I launch for you?"
+      },
+      "defaults": {
+        "model": "deepseek-3",
+        "model_provider": "fireworks",
+        "model_temperature": 1.0,
+        "model_max_tokens": 15000
+      }
+    }
+  },
+  "show_entry": true
+}
