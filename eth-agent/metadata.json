@@ -1,0 +1,18 @@
+{
+  "category": "agent",
+  "description": "Agent that can interact with Ethereum.",
+  "tags": [],
+  "details": {
+    "agent": {
+      "framework": "web-agent",
+      "welcome": {
+        "description": "",
+        "title": "Connected to Ethereum."
+      }
+    },
+    "env_vars": {}
+  },
+  "show_entry": true,
+  "name": "eth-agent",
+  "version": "0.1.1"
+}
