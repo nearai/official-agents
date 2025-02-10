@@ -41,6 +41,14 @@ class Agent:
         """
         pass
 
+    @staticmethod
+    def request_data_tool(fields: dict):
+        """When you need one or more pieces of data from a user, you can call this tool to request them.
+        fields: a json object in the format:
+        Examples: shipping data
+
+        """
+
     def execute_user_focused_intent(self):
         """Evaluates the capabilities of the client, decides how to effectuate the intent,
          through a tool or through a text response."""
