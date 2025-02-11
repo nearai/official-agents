@@ -197,6 +197,7 @@ class Agent:
         env.completion_and_run_tools(
             [{"role": "system", "content": "You are an assistant"},
              {"role": "user", "content": query}],
+            model="llama-v3p3-70b-instruct",
             tools=tools,
         )
 

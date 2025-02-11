@@ -8,14 +8,10 @@
     "agent": {
       "defaults": {
         "max_iterations": 1,
-        "models": [
-          {
-            "model": "llama-v3p3-70b-instruct",
-            "model_max_tokens": 4096,
-            "model_provider": "fireworks",
-            "model_temperature": 1
-          }
-        ]
+        "model": "llama-v3p3-70b-instruct",
+        "model_max_tokens": 4096,
+        "model_provider": "fireworks",
+        "model_temperature": 1
       },
       "welcome": {
         "description": "This agent tests features.",
