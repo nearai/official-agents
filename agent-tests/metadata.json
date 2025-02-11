@@ -24,7 +24,13 @@
       "initial_user_message": "{\"$schema\": \"https://aitp.dev/v1/operations\", \"init\": \"help\"}"
     },
     "display_name": "Agent Tests",
-    "icon": ""
+    "icon": "",
+    "capabilities": [
+      {"$schema": "https://aitp.dev/v1/requests.schema.json" },
+      {"$schema": "https://aitp.dev/v1/data.schema.json" },
+      {"$schema": "https://aitp.dev/v1/payments.schema.json" },
+      {"$schema": "https://aitp.dev/v1/operations.schema.json" }
+    ]
   },
   "show_entry": true,
   "name": "agent-tests",

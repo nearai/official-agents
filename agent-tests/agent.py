@@ -75,29 +75,56 @@ class Agent:
             and calls tools to send messages of type: request_decision, and request_data.
             For example the following json message is a request_decision message that encodes product options:
 
+            { "$schema": "https://aitp.dev/v1/requests.schema.json",
               "request_decision": {
-                "type": "product",
+                "id": "request_decision_1",
+                "type": "products",
                 "options": [
                   {
-                    "id": 1,
+                    "id": "product_1",
                     "image_url": "https://...",
                     "name": "Red Socks",
-                    "price": {
-                      "usd": 10.5
-                    },
-                    "url": "https://amazon.com/..."
+                    {
+                        type: 'Quote',
+                        payee_id: 'foobar',
+                        quote_id: 'foobar',
+                        payment_plans: [
+                          {
+                            amount: $1,
+                            currency: 'USD',
+                            plan_id: 'foobar',
+                            plan_type: 'one-time',
+                          },
+                        ],
+                        valid_until: '2050-01-01T00:00:00Z',
+                      }
+                      "url": "https://amazon.com/..."
                   },
                   {
-                    "id": 2,
+                    "id": "product_2",
                     "image_url": "https://...",
                     "name": "Blue Socks",
-                    "price": {
-                      "usd": 9
-                    },
-                    "url": "https://amazon.com/..."
+                    {
+                        type: 'Quote',
+                        payee_id: 'foobar',
+                        quote_id: 'foobar',
+                        payment_plans: [
+                          {
+                            amount: $2,
+                            currency: 'USD',
+                            plan_id: 'foobar',
+                            plan_type: 'one-time',
+                          },
+                        ],
+                        valid_until: '2050-01-01T00:00:00Z',
+                      }
+                      "url": "https://amazon.com/..."
                   }
                 ]
-              }"""
+              }
+              
+              When replying with a request_decision or request_data message, only return the json and no other text or formatting.
+              """
 
         product_data = [
             {
