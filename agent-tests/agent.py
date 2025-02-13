@@ -164,6 +164,7 @@ class Agent:
              {"role": "system", "content": json.dumps(product_data)},
              {"role": "user", "content": "what product choices do I have?"}],
             # tools=tools,
+            # response_format={"type": "json_object"}  #should work according to Fireworks docs but is throwing 400
         )
 
     def _process_search_results(self, search_results):

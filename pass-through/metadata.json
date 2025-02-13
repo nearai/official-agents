@@ -12,9 +12,9 @@
         "title": "This is a testing agent inter agent communication.",
         "description": "How can I help you today?"
       },
-      "initial_user_message": "/init",
+      "//initial_user_message": "{\"$schema\": \"https://aitp.dev/v1/operations\", \"init\": \"hello\"}",
       "defaults": {
-        "model": "llama-3p2-3b-instruct",
+        "model": "llama-v3p3-70b-instruct",
         "model_provider": "fireworks",
         "model_temperature": 1.0,
         "model_max_tokens": 2048
