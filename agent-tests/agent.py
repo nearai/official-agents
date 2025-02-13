@@ -159,13 +159,16 @@ class Agent:
         # print(f"Tools: {tools}")
 
 
-        env.completion_and_run_tools(
+        result = env.completion(
             [{"role": "system", "content": prompt},
              {"role": "system", "content": json.dumps(product_data)},
              {"role": "user", "content": "what product choices do I have?"}],
-            # tools=tools,
-            # response_format={"type": "json_object"}  #should work according to Fireworks docs but is throwing 400
         )
+        # tools=tools,
+        # response_format={"type": "json_object"}  #should work according to Fireworks docs but is throwing 400
+
+        env.add_reply(result)
+
 
     def _process_search_results(self, search_results):
         """Default processing of search results from the google search API, returns result titles
