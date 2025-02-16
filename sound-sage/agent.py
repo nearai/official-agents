@@ -17,13 +17,14 @@ class Agent:
             [{"role": "system", "content": prompt.PROMPT},
              {"role": "system", "content": json.dumps(prompt.example_product_data)},
              {"role": "user", "content": user_message}],
+            # response_format={'type': 'json_object'}
         ))
 
     def run(self):
         try:
             env = self.env
             user_message = env.get_last_message()
-            self.request_decision_test(user_message)
+            self.request_decision_test(user_message['content'])
         except Exception as e:
             # print stacktrace
             import traceback

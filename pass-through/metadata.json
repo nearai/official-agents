@@ -19,7 +19,12 @@
         "model_temperature": 1.0,
         "model_max_tokens": 2048
       }
-    }
+    },
+    "capabilities": [
+      {"$schema": "https://aitp.dev/v1/requests.schema.json" },
+      {"$schema": "https://aitp.dev/v1/data.schema.json" },
+      {"$schema": "https://aitp.dev/v1/payments.schema.json" }
+    ]
   },
   "show_entry": true
 }

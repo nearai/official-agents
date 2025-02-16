@@ -51,32 +51,141 @@ PROMPT = f"""You are SoundSage, an AI-powered audio product recommendation agent
 You speak Agent Interaction & Transaction Protocol (AITP)
 For example the following json message is a request_decision message that encodes product options:
 {request_decision_example}
-When replying with a request_decision or request_data message, only return the json and no other text or formatting.
+When replying with a request_decision, only return the json and no other text or formatting.
 """
 # and can call tools to send messages of type: request_decision, and request_data.
 
+# Note this data is in the request_decision format but the /amazon_search_products data will not be
 example_product_data = [
     {
-        "code": "B0043P0IAK",
-        "name": "",
-        "description": "Scotch-Brite Zero Scratch Scrub Sponges, 6 Kitchen Sponges for Washing Dishes and Cleaning the Kitchen and Bath, Non-Scratch Sponge Safe for Non-Stick Cookware",
-        "url": "https://www.amazon.com/dp/B0043P0IAK",
-        "price": "$5.97",
-        "imageUrl": "https://m.media-amazon.com/images/I/71fLn8-uF8L._AC_UL320_.jpg"
+        "id": "product_1",
+        "name": "JBL Tour One M2",
+        "description": "A short, summarized description about the headphones",
+        "five_star_rating": 4.2,
+        "reviews_count": 132,
+        "quote": {
+            "type": "Quote",
+            "payee_id": "foobar",
+            "quote_id": "foobar",
+            "payment_plans": [
+                {
+                    "amount": 199.5,
+                    "currency": "USD",
+                    "plan_id": "foobar",
+                    "plan_type": "one-time"
+                }
+            ],
+            "valid_until": "2050-01-01T00:00:00Z"
+        },
+        "image_url": "https://m.media-amazon.com/images/I/61rJmoiiYHL._AC_SX679_.jpg",
+        "url": "https://www.amazon.com/JBL-Tour-One-Cancelling-Headphones/dp/B0C4JBTM5B"
     },
     {
-        "code": "B0CJ1NHWGX",
-        "name": "",
-        "description": "Scrub Daddy Color Sponges - Scratch-Free Multipurpose Dish Sponges for Kitchen, Bathroom + More - Household Cleaning Sponges Made with BPA-Free Polymer Foam (3 Count)",
-        "url": "https://www.amazon.com/dp/B0CJ1NHWGX",
-        "price": "$13.99",
-        "imageUrl": "https://m.media-amazon.com/images/I/81a1n6xi-qL._AC_UL320_.jpg"
+        "id": "product_2",
+        "name": "Soundcore by Anker, Space One",
+        "short_variant_name": "Space One",
+        "five_star_rating": 3.5,
+        "quote": {
+            "type": "Quote",
+            "payee_id": "foobar",
+            "quote_id": "foobar",
+            "payment_plans": [
+                {
+                    "amount": 79.99,
+                    "currency": "USD",
+                    "plan_id": "foobar",
+                    "plan_type": "one-time"
+                }
+            ],
+            "valid_until": "2050-01-01T00:00:00Z"
+        },
+        "image_url": "https://m.media-amazon.com/images/I/51EXj4BRQaL._AC_SX679_.jpg",
+        "url": "https://www.amazon.com/Soundcore-Cancelling-Headphones-Reduction-Comfortable/dp/B0C6KKQ7ND",
+        "variants": [
+            {
+                "id": "product_3",
+                "name": "Soundcore by Anker, Jet Black",
+                "short_variant_name": "Jet Black",
+                "five_star_rating": 3.75,
+                "quote": {
+                    "type": "Quote",
+                    "payee_id": "foobar",
+                    "quote_id": "foobar",
+                    "payment_plans": [
+                        {
+                            "amount": 89.99,
+                            "currency": "USD",
+                            "plan_id": "foobar",
+                            "plan_type": "one-time"
+                        }
+                    ],
+                    "valid_until": "2050-01-01T00:00:00Z"
+                },
+                "image_url": "https://m.media-amazon.com/images/I/51l80KVua0L._AC_SX679_.jpg",
+                "url": "https://www.amazon.com/Soundcore-Cancelling-Headphones-Reduction-Comfortable/dp/B0C6KFZC9Z"
+            },
+            {
+                "id": "product_4",
+                "name": "Soundcore by Anker, Cream",
+                "short_variant_name": "Cream",
+                "five_star_rating": 3.75,
+                "quote": {
+                    "type": "Quote",
+                    "payee_id": "foobar",
+                    "quote_id": "foobar",
+                    "payment_plans": [
+                        {
+                            "amount": 74.99,
+                            "currency": "USD",
+                            "plan_id": "foobar",
+                            "plan_type": "one-time"
+                        }
+                    ],
+                    "valid_until": "2050-01-01T00:00:00Z"
+                },
+                "image_url": "https://m.media-amazon.com/images/I/51QVszp82CL._AC_SX679_.jpg",
+                "url": "https://www.amazon.com/Soundcore-Cancelling-Headphones-Reduction-Comfortable/dp/B0C6KJ3R71"
+            }
+        ]
     },
     {
-        "code": "B004IR3044",
-        "name": "",
-        "description": "Scotch-Brite Heavy Duty Scrub Sponges, Sponges for Cleaning Kitchen and Household, Heavy Duty Sponges Safe for Non-Coated Cookware, 6 Scrubbing Sponges",
-        "url": "https://www.amazon.com/dp/B004IR3044",
-        "price": "$5.97",
-        "imageUrl": "https://m.media-amazon.com/images/I/81X7J+sBI9L._AC_UL320_.jpg"
-    }]
+        "id": "product_5",
+        "name": "Sony WH-1000XM5",
+        "quote": {
+            "type": "Quote",
+            "payee_id": "foobar",
+            "quote_id": "foobar",
+            "payment_plans": [
+                {
+                    "amount": 399.99,
+                    "currency": "USD",
+                    "plan_id": "foobar",
+                    "plan_type": "one-time"
+                }
+            ],
+            "valid_until": "2050-01-01T00:00:00Z"
+        },
+        "image_url": "https://m.media-amazon.com/images/I/61eeHPRFQ9L._AC_SX679_.jpg",
+        "url": "https://www.amazon.com/Sony-WH-1000XM5-Headphones-Hands-Free-WH1000XM5/dp/B0BXYCS74H"
+    },
+    {
+        "id": "product_6",
+        "name": "Edifier STAX Spirit S3",
+        "quote": {
+            "type": "Quote",
+            "payee_id": "foobar",
+            "quote_id": "foobar",
+            "payment_plans": [
+                {
+                    "amount": 348,
+                    "currency": "USD",
+                    "plan_id": "foobar",
+                    "plan_type": "one-time"
+                }
+            ],
+            "valid_until": "2050-01-01T00:00:00Z"
+        },
+        "image_url": "https://m.media-amazon.com/images/I/61E4YsCrICL._AC_SX679_.jpg",
+        "url": "https://www.amazon.com/Sony-WH-1000XM5-Headphones-Hands-Free-WH1000XM5/dp/B0BXYCS74H"
+    }
+]
