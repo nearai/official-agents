@@ -1,4 +1,5 @@
 from nearai.agents.environment import Environment
+from nearai.shared.models import ThreadMode
 from pydantic import BaseModel
 
 STATE_FILE = "assistant_state.json"
@@ -86,9 +87,8 @@ def process_first_run(state: State, env: Environment):
         if any(keyword in user_query for keyword in info["keywords"]):
             agent_path = info["agent"]
             print(f"Calling agent: {agent_path}")
-            namespace, agent_name, version = agent_path.split("/")
             child_thread = env.run_agent(
-                namespace, agent_name, version, fork_thread=False
+                agent_path, thread_mode=ThreadMode.SAME
             )
             state.child_thread_id = child_thread
             state.ready_for_completions = False
