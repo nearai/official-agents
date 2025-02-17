@@ -10,24 +10,6 @@ class AmazonMCPServer:
         self.mcp_server_url = env.env_vars.get("MCP_SERVER_URL", "https://5jfjt8xpp3.us-west-2.awsapprunner.com")
         self.session = None
 
-    async def format_mcp_tools(self, tools):
-        if not tools:
-            return []
-
-        return [{
-            "type": "function",
-            "function": {
-                "name": tool.name,
-                "description": tool.description if hasattr(tool, 'description') else None,
-                "parameters": {
-                    "type": "object",
-                    "properties": tool.inputSchema.get("properties", {}),
-                    "required": tool.inputSchema.get("required", []),
-                    "additionalProperties": tool.inputSchema.get("additionalProperties", False)
-                }
-            }
-        } for tool in tools]
-
 
     async def register_mcp_tool_definitions(self):
         tool_registry = self.env.get_tool_registry(True)
