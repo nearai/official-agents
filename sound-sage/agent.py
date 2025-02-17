@@ -1,14 +1,16 @@
 # This agent helps users buy audio equipment.
 import json
 import prompt
-import shopping_mcp
+from shopping_mcp import AmazonMCPServer
 import products_aitp
 import payments_aitp
 import checkout_aitp
+import asyncio
 
 class Agent:
     def __init__(self, env):
         self.env = env
+        self.amazon_mcp_server = AmazonMCPServer(env)
 
     def request_decision_test(self, user_message):
         env = self.env
@@ -20,18 +22,19 @@ class Agent:
             # response_format={'type': 'json_object'}
         ))
 
-    def run(self):
+    async def run(self):
         try:
             env = self.env
             user_message = env.get_last_message()
             self.request_decision_test(user_message['content'])
+            tools = await self.amazon_mcp_server.register_mcp_tool_definitions()
+            self.env.add_reply(f"Tools: {str(tools)}")
         except Exception as e:
             # print stacktrace
             import traceback
             traceback.print_exc()
-            self.env.add_reply(f"Error: {e}")
 
 
 if globals().get('env', None):
     agent = Agent(globals().get('env', {}))
-    agent.run()
+    asyncio.run(agent.run())
