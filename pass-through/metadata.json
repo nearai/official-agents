@@ -1,6 +1,6 @@
 {
   "name": "pass-through",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A test of assistant style pass through messages to other agents.",
   "category": "agent",
   "tags": ["assistant"],
@@ -9,7 +9,7 @@
     "icon": "https://upload.wikimedia.org/wikipedia/commons/f/fe/Arrows.svg",
     "agent": {
       "welcome": {
-        "title": "This is a testing agent inter agent communication.",
+        "title": "This agent tests inter-agent communication.",
         "description": "How can I help you today?"
       },
       "//initial_user_message": "{\"$schema\": \"https://aitp.dev/v1/operations\", \"init\": \"hello\"}",
