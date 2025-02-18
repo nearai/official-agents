@@ -1,5 +1,5 @@
 import json
-from typing import Optional, Dict
+from typing import Optional, Dict, Union
 
 from nearai.agents.environment import Environment, ThreadMode
 from openai.types.beta import Thread
@@ -7,10 +7,15 @@ from nearai.shared.models import ThreadMode, RunMode
 
 BASE_PROMPT = "You are a helpful assistant that often calls other assistant agents to accomplish tasks for the user."
 PROMPTS = {
+    # Prompt should tell the agent how and when to come up with user focused intents
+    # if there is no active intent decides what the user intent is,
+    #   come up with a simple answer
+    #   build a plan to accomplish the intent.
     "handle_user":
         f"""{BASE_PROMPT}
 If a user starts a new conversation (usually with a hello aitp message), tell them about your capabilities and ask them what they need help with.
-""", # come up with a simple answer and also make a plan.
+""",
+
     "handle_agent":
         f"""{BASE_PROMPT}
 This is a sub-thread, a conversation between you and an agent you have called. 
@@ -19,15 +24,15 @@ Decide whether the next step is to respond to the agent or to the user.""" # use
 
 
 class Agent:
-
+    """Pass-through agent hands off to other agents based on user input.
+       Stores thread state via agent data:
+           "thread_12345": {"selected_agent": "flatirons.near/sound-sage/0.0.1"}
+    """
     def __init__(self, env: Environment):
         self.env = env
 
-    # See https://docs.near.ai/agents for more information on building agents
-    # See https://github.com/nearai/official-agents for examples and templates
 
-    # Prompt should tell the agent how and when to come up with user focused intents
-
+    # todo: implement
     def discovery(self, user_message: str) -> Optional[str]:
         """Placeholder for discovery calls."""
         if "headphones" in user_message:
@@ -40,65 +45,96 @@ class Agent:
             return None
 
     def process_user_message(self, thread):
-        """Processes the user message,
-        if there is no active intent decides what the user intent is, build a plan to accomplish the intent."""
+        """Processes the user message"""
         prompt = {"role": "system", "content": PROMPTS["handle_user"]}
         user_message = self.env.get_last_message()["content"]
-        selected_agent = self.discovery(user_message)
-        if selected_agent:
-            self.env.add_reply("Running agent: agent-tests")
-            self.env.run_agent(selected_agent, query=user_message, thread_mode=ThreadMode.CHILD, run_mode=RunMode.WITH_CALLBACK)
-            self.env.request_agent_input()
+        protocol_message = self.detect_protocol_message(user_message)
+        thread_data = self.env.get_agent_data_by_key(thread.id)
+        thread_data_value = thread_data.get("value") if thread_data else None
+        active_service_agent = thread_data_value.get("active_service_agent") if thread_data_value else None
+        if protocol_message and active_service_agent:
+            self.process_user_protocol_message(protocol_message, active_service_agent)
         else:
-            result = self.env.completion([prompt] + self.env.list_messages())
-            self.env.add_reply(result)
-            self.env.request_user_input()
+            selected_agent = self.discovery(user_message)
+            self.env.save_agent_data(thread.id, {"active_service_agent": selected_agent})
+
+            if selected_agent:
+                self.env.add_agent_log(f"Handing off to agent: {selected_agent}")
+                self.env.run_agent(selected_agent, query=user_message, thread_mode=ThreadMode.CHILD, run_mode=RunMode.WITH_CALLBACK)
+                self.env.request_agent_input()
+            else:
+                result = self.env.completion([prompt] + self.env.list_messages())
+                self.env.add_reply(result)
+                self.env.request_user_input()
 
     def process_service_agent_message(self, subthread):
         """Processes the service agent message, decides how to respond to the message."""
-        prompt = {"role": "system", "content": PROMPTS["handle_agent"]}
+        # prompt = {"role": "system", "content": PROMPTS["handle_agent"]}
         parent_thread = subthread.metadata.get("parent_id")
         agent_to_agent_conversation = self.env.list_messages() # subthread messages
-        print(f"agent_to_agent_conversation: {agent_to_agent_conversation}")
         last_message = agent_to_agent_conversation[-1]
         if not last_message or not last_message.get("content"):
             self.env.add_reply("Sorry, something went wrong. Conversation with Service Agent was empty.")
-        # pass message through for now
-        # result = self.env.completion([prompt] + agent_to_agent_conversation)
-        # could add system:subthread end message here
-        self.env.add_reply(last_message.get("content"), thread_id=parent_thread)
-        self.env.request_user_input()
+
+        protocol_message = self.detect_protocol_message(last_message)
+        if protocol_message:
+            self.process_service_agent_protocol_message(protocol_message, parent_thread)
+        else:
+            self.process_general_service_agent_message(last_message["content"], parent_thread)
 
 
-    def detect_protocol_message(self, message: str) -> Optional[Dict]:
+    def detect_protocol_message(self, message: Union[str,dict]) -> Optional[Dict]:
         """Determines if the message is an AITP protocol message."""
         # if the message is json and has a json $schema key starting with "https://aitp.dev" then it is a protocol message
         # in that case, return all keys other than the $schema key
-        if message.startswith("{") and message.endswith("}"):
-            try:
-                message = json.loads(message)
-            except json.JSONDecodeError:
+        if isinstance(message, str):
+            if message.startswith("{") and message.endswith("}"):
+                try:
+                    message = json.loads(message)
+                except json.JSONDecodeError:
+                    return None
+            else:
                 return None
-            if message.get("$schema") and message["$schema"].startswith("https://aitp.dev"):
-                return {k: v for k, v in message.items() if k != "$schema"}
+        if message.get("$schema") and message["$schema"].startswith("https://aitp.dev"):
+            return message
         return None
 
-    def process_user_protocol_message(self, message: dict):
-        """Routes each type of protocol message expected by a user."""
+    def process_user_protocol_message(self, message: dict, active_service_agent: str):
+        """Routes each type of protocol message expected by a client."""
         keys = message.keys()
+        if "$schema" in keys:
+            pass # ignore the schema declaration
         if "decision" in keys:
             pass
         elif "data" in keys:
             pass
+        self.env.add_agent_log(f"Handing off to active agent: {active_service_agent}")
+        self.env.run_agent(active_service_agent, query=json.dumps(message), thread_mode=ThreadMode.CHILD, run_mode=RunMode.WITH_CALLBACK)
+        self.env.request_agent_input()
 
-    def pass_message_to_service_agent(self, message: dict):
-        """Passes the message to the service agent."""
-        pass
+    def process_general_service_agent_message(self, last_message_text, parent_thread):
+        self.env.add_reply(last_message_text, thread_id=parent_thread)
+        self.env.request_user_input()
 
-    def process_service_agent_protocol_message(self, message: dict):
+
+    def process_service_agent_protocol_message(self, protocol_message: dict, parent_thread):
         """Routes each type of protocol message expected by an agent."""
-        pass
+        keys = protocol_message.keys()
+        if "$schema" in keys:
+            pass # ignore the schema declaration
+        if "request_decision" in keys:
+            pass # process_request_decision
+        elif "request_data" in keys:
+            pass # process_protocol_data_request
+        elif "quote" in keys:
+            pass # todo implement. decide whether to approve purchase or surface to user
+        elif "payment_result" in keys:
+            pass # todo implement. store in user memory
+        self.env.add_reply(json.dumps(protocol_message), thread_id=parent_thread)
+        self.env.request_user_input()
 
+
+    # todo: implement.
     def process_protocol_data_request(self):
         """Determines whether the requested data is permitted to be shared with the service agent.
          If so, decides whether it can answer the request or if it should be passed up to the user.
@@ -106,6 +142,7 @@ class Agent:
         """
         pass
 
+    # todo: implement.
     @staticmethod
     def request_data_tool(fields: dict):
         """When you need one or more pieces of data from a user, you can call this tool to request them.
@@ -114,25 +151,29 @@ class Agent:
 
         """
 
+    # todo: implement, maybe
     def execute_user_focused_intent(self):
         """Evaluates the capabilities of the client, decides how to effectuate the intent,
          through a tool or through a text response."""
         pass
 
+    # todo: implement.
     def update_state_json(self):
         """Writes to the state.json file, first performing validation"""
+        # write shopping cart data to state.json
         pass
 
+    # todo: implement.
     def process_request_decision(self):
         # is the decision consequential/inconsequential and reversible/irreversible?
         # if it is inconsequential and reversible, and all data is available make the decision
         pass
 
 
+    # todo: implement. Mocked for now
     def client_capabilities(self, thread):
         """Retrieve client capabilities from the thread."""
 
-        # todo: implement. Mocked for now
         return [
             {"$schema": "https://aitp.dev/v1/requests.schema.json" },
             {"$schema": "https://aitp.dev/v1/data.schema.json" },

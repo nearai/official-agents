@@ -1,11 +1,10 @@
 
 from mcp import ClientSession
 from mcp.client.sse import sse_client
-from nearai.agents.environment import Environment
 import asyncio
 
-class AmazonMCPServer:
-    def __init__(self, env: Environment):
+class ShoppingMCP:
+    def __init__(self, env):
         self.env = env
         self.mcp_server_url = env.env_vars.get("MCP_SERVER_URL", "https://5jfjt8xpp3.us-west-2.awsapprunner.com")
         self.session = None
