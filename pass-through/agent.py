@@ -40,7 +40,7 @@ class Agent:
             # decide whether there is a relevant agent
             # store the agent as the active service agent
             # call the agent
-            return "flatirons.near/sound-sage/0.0.1"
+            return "flatirons.near/sound-sage/latest"
         else:
             return None
 
