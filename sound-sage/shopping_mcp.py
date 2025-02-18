@@ -1,4 +1,4 @@
-class AmazonMCPServer:
+class ShoppingMCP:
     def __init__(self, env):
         self.env = env
 
