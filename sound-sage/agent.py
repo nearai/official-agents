@@ -30,7 +30,7 @@ class Agent:
                 return {k: v for k, v in message.items() if k != "$schema"}
         return None
 
-    def route(self, protocol):
+    def route(self, protocol: dict):
         message_type = list(protocol.keys())[0]
         match message_type:
             case "decision":
@@ -49,7 +49,7 @@ class Agent:
             user_message = env.get_last_message()['content']  # query comes in as a user message, is this what we want?
             protocol = self.detect_protocol_message(user_message)
             if protocol:
-                self.route(user_message)
+                self.route(protocol)
             else:
                 self.request_decision_test(user_message)
         except Exception as e:
