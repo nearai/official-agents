@@ -3,18 +3,18 @@ import json
 from typing import Dict, Optional
 
 import prompt
-from shopping_mcp import AmazonMCPServer
+from shopping_mcp import ShoppingMCP
 import products_aitp
 import payments_aitp
 import checkout_aitp
 import asyncio
+from nearai.agents.environment import Environment
 from test_messages import request_decision, request_data, quote_with_shipping, payment_authorization, payment_result
 
-
 class Agent:
-    def __init__(self, env):
+    def __init__(self, env: Environment):
         self.env = env
-        self.amazon_mcp_server = AmazonMCPServer(env)
+        self.shopping_mcp_server = ShoppingMCP(env)
 
     def request_decision_test(self, user_message):
         self.env.add_reply(json.dumps(request_decision))
@@ -48,8 +48,7 @@ class Agent:
     async def run(self):
         try:
             env = self.env
-            tools = await self.amazon_mcp_server.register_mcp_tool_definitions()
-            self.env.add_reply(f"Tools: {str(tools)}")
+            await self.shopping_mcp_server.run()
 
             user_message = env.get_last_message()['content']  # query comes in as a user message, is this what we want?
             protocol = self.detect_protocol_message(user_message)
