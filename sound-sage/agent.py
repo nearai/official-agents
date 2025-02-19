@@ -3,16 +3,18 @@ import json
 from typing import Dict, Optional
 
 import prompt
-import shopping_mcp
+from shopping_mcp import ShoppingMCP
 import products_aitp
 import payments_aitp
 import checkout_aitp
+import asyncio
+from nearai.agents.environment import Environment
 from test_messages import request_decision, request_data, quote_with_shipping, payment_authorization, payment_result
 
-
 class Agent:
-    def __init__(self, env):
+    def __init__(self, env: Environment):
         self.env = env
+        self.shopping_mcp_server = ShoppingMCP(env)
 
     def request_decision_test(self, user_message):
         self.env.add_reply(json.dumps(request_decision))
@@ -43,22 +45,24 @@ class Agent:
             case _:
                 raise ValueError(f"Unknown message type: {message_type}")
 
-    def run(self):
+    async def run(self):
         try:
             env = self.env
+            await self.shopping_mcp_server.run()
+
             user_message = env.get_last_message()['content']  # query comes in as a user message, is this what we want?
             protocol = self.detect_protocol_message(user_message)
             if protocol:
                 self.route(protocol)
             else:
                 self.request_decision_test(user_message)
+
         except Exception as e:
             # print stacktrace
             import traceback
             traceback.print_exc()
-            self.env.add_reply(f"Error: {e}")
 
 
 if globals().get('env', None):
     agent = Agent(globals().get('env', {}))
-    agent.run()
+    asyncio.run(agent.run())
