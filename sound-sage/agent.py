@@ -2,7 +2,7 @@
 import json
 from typing import Dict, Optional
 
-import prompt
+from prompt import user_prompt
 from shopping_mcp import ShoppingMCP
 import products_aitp
 import payments_aitp
@@ -11,10 +11,11 @@ import asyncio
 from nearai.agents.environment import Environment
 from test_messages import request_decision, request_data, quote_with_shipping, payment_authorization, payment_result
 
+
 class Agent:
     def __init__(self, env: Environment):
         self.env = env
-        self.shopping_mcp_server = ShoppingMCP(env)
+        self.shopping_mcp_server = ShoppingMCP(env, tool_post_processor_function=self.post_process_tools)
 
     def request_decision_test(self, user_message):
         self.env.add_reply(json.dumps(request_decision))
@@ -45,22 +46,56 @@ class Agent:
             case _:
                 raise ValueError(f"Unknown message type: {message_type}")
 
+    def process_search_results(self, search_results):
+        product_processor = products_aitp.ProductsAITP(self.env)
+        aitp_request_decision = product_processor.generate_request_decision(search_results) # not implemented
+        return aitp_request_decision
+        # future implementation
+        # pass search_results to llm call to narrow them down and make recommendations.
+        # Output should be recommendation text and reduced list
+        # Convert list to aitp request decision format
+        # validate that original (pre-LLM) product data matches data in AITP message
+        # process_search_results will handle the reply because there are multiple messages
+
+
+    def post_process_tools(self, tool_call, tool_result):
+        # aitp_amazon_search
+        # Description: Search for Amazon products by keyword
+        #
+        # aitp_amazon_add_to_cart
+        # Description: Add a product to the cart
+        #
+        # aitp_amazon_checkout
+        # Description: Amazon checkout - purchase all items in your cart
+        #
+        # aitp_amazon_cancel_order
+        # Description: Cancel an order for a product on Amazon
+        #
+        # aitp_check_account_balance
+        # Description: Check the USDC balance of a NEAR wallet
+        #
+        # check_usdc_balance
+        # Description: Check the USDC balance of a NEAR wallet
+        print(f"Post processing Tool call: {tool_call.function.name}")
+        match tool_call.function.name:
+            case "aitp_amazon_search":
+                return self.process_search_results(tool_result)
+            case _:
+                return tool_result
+
+    async def handle_general_request(self, user_message):
+        messages = [{"role": "system", "content": user_prompt},
+                    {"role": "user", "content": user_message}]
+        return await self.shopping_mcp_server.run(messages)
+
     async def run(self):
-        try:
-            env = self.env
-            await self.shopping_mcp_server.run()
-
-            user_message = env.get_last_message()['content']  # query comes in as a user message, is this what we want?
-            protocol = self.detect_protocol_message(user_message)
-            if protocol:
-                self.route(protocol)
-            else:
-                self.request_decision_test(user_message)
-
-        except Exception as e:
-            # print stacktrace
-            import traceback
-            traceback.print_exc()
+        env = self.env
+        user_message = env.get_last_message()['content']
+        protocol = self.detect_protocol_message(user_message)
+        if protocol:
+            self.route(protocol)
+        else:
+            await self.handle_general_request(user_message)
 
 
 if globals().get('env', None):

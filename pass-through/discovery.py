@@ -76,7 +76,6 @@ def generate_llm_response(env, messages, processed_results):
 
 def process_vector_results(results) -> List[Dict[str, Any]]:
     flattened_results = [item for sublist in results for item in sublist]
-    print("flattened_results", flattened_results)
     return flattened_results[:20]
 
 
