@@ -1,34 +1,14 @@
 # This agent performs simple tests
 import json
+from typing import Optional, Dict
 
 import requests
+from aitp_test_messages import request_decision, request_data, quote_with_shipping, payment_authorization, payment_result
+from llm_aitp import dynamic_request_decision_test
+from menu import help_menu
 
 PROMPT = f"""Let's run some tests"""
 
-request_decision_message = {"request_decision": {
-    "type": "product",
-    "options": [
-        {
-            "id": 1,
-            "image_url": "https://...",
-            "name": "Red Socks",
-            "price": {
-                "usd": 10.5
-            },
-            "url": "https://amazon.com/..."
-        },
-        {
-            "id": 2,
-            "image_url": "https://...",
-            "name": "Blue Socks",
-            "price": {
-                "usd": 9
-            },
-            "url": "https://amazon.com/..."
-        }
-    ]
-}
-}
 
 class Agent:
     def __init__(self, env):
@@ -43,132 +23,38 @@ class Agent:
         else:
             env.add_reply("FAILURE: Agent data not saved or retrieved successfully")
 
-    def json_message_test(self):
-        env = self.env
-        env.add_reply({"json": request_decision_message})
 
-    def encoded_json_message_test(self):
-        env = self.env
-
-        env.add_reply(json.dumps(request_decision_message))
-
-
-    def request_decision(self, request_decision_json: dict):
-        """When you need the user to make a choice or decision, call this tool to present the choice to the user.
-
-        request_decision_json: products to choose between
-
-        """
-        print("Request choice tool called")
-        # response = self.env.completion([
-        #     {"role": "system", "content": "Convert the following product data to a request_decision message"},
-        #     {"role": "user", "content": json.dumps(products)}])
-
-        # validate the request_decision_json
-
-        self.env.add_reply(json.dumps(request_decision_json))
 
     def request_decision_test(self):
-        env = self.env
+        self.env.add_reply(json.dumps(request_decision))
 
-        prompt = """You are an agent that speaks Agent Interaction & Transaction Protocol (AITP)
-            and calls tools to send messages of type: request_decision, and request_data.
-            For example the following json message is a request_decision message that encodes product options:
+    def detect_protocol_message(self, message: str) -> Optional[Dict]:
+        """Determines if the message is an AITP protocol message."""
+        # if the message is json and has a json $schema key starting with "https://aitp.dev" then it is a protocol message
+        # in that case, return all keys other than the $schema key
+        if message.startswith("{") and message.endswith("}"):
+            try:
+                message = json.loads(message)
+            except json.JSONDecodeError:
+                return None
+            if message.get("$schema") and message["$schema"].startswith("https://aitp.dev"):
+                return {k: v for k, v in message.items() if k != "$schema"}
+        return None
 
-            { "$schema": "https://aitp.dev/v1/requests.schema.json",
-              "request_decision": {
-                "id": "request_decision_1",
-                "type": "products",
-                "options": [
-                  {
-                    "id": "product_1",
-                    "image_url": "https://...",
-                    "name": "Red Socks",
-                    {
-                        type: 'Quote',
-                        payee_id: 'foobar',
-                        quote_id: 'foobar',
-                        payment_plans: [
-                          {
-                            amount: $1,
-                            currency: 'USD',
-                            plan_id: 'foobar',
-                            plan_type: 'one-time',
-                          },
-                        ],
-                        valid_until: '2050-01-01T00:00:00Z',
-                      }
-                      "url": "https://amazon.com/..."
-                  },
-                  {
-                    "id": "product_2",
-                    "image_url": "https://...",
-                    "name": "Blue Socks",
-                    {
-                        type: 'Quote',
-                        payee_id: 'foobar',
-                        quote_id: 'foobar',
-                        payment_plans: [
-                          {
-                            amount: $2,
-                            currency: 'USD',
-                            plan_id: 'foobar',
-                            plan_type: 'one-time',
-                          },
-                        ],
-                        valid_until: '2050-01-01T00:00:00Z',
-                      }
-                      "url": "https://amazon.com/..."
-                  }
-                ]
-              }
-              
-              When replying with a request_decision or request_data message, only return the json and no other text or formatting.
-              """
-
-        product_data = [
-            {
-              "code": "B0043P0IAK",
-              "name": "",
-              "description": "Scotch-Brite Zero Scratch Scrub Sponges, 6 Kitchen Sponges for Washing Dishes and Cleaning the Kitchen and Bath, Non-Scratch Sponge Safe for Non-Stick Cookware",
-              "url": "https://www.amazon.com/dp/B0043P0IAK",
-              "price": "$5.97",
-              "imageUrl": "https://m.media-amazon.com/images/I/71fLn8-uF8L._AC_UL320_.jpg"
-            },
-            {
-              "code": "B0CJ1NHWGX",
-              "name": "",
-              "description": "Scrub Daddy Color Sponges - Scratch-Free Multipurpose Dish Sponges for Kitchen, Bathroom + More - Household Cleaning Sponges Made with BPA-Free Polymer Foam (3 Count)",
-              "url": "https://www.amazon.com/dp/B0CJ1NHWGX",
-              "price": "$13.99",
-              "imageUrl": "https://m.media-amazon.com/images/I/81a1n6xi-qL._AC_UL320_.jpg"
-            },
-            {
-              "code": "B004IR3044",
-              "name": "",
-              "description": "Scotch-Brite Heavy Duty Scrub Sponges, Sponges for Cleaning Kitchen and Household, Heavy Duty Sponges Safe for Non-Coated Cookware, 6 Scrubbing Sponges",
-              "url": "https://www.amazon.com/dp/B004IR3044",
-              "price": "$5.97",
-              "imageUrl": "https://m.media-amazon.com/images/I/81X7J+sBI9L._AC_UL320_.jpg"
-            }]
-
-        # Real usage would check client capabilities to decide whether to register the tool
-        tool_registry = env.get_tool_registry(True)
-        # tool_registry.register_tool(self.request_decision)
-        # tools = tool_registry.get_all_tool_definitions()
-        # print(f"Tools: {tools}")
-
-
-        result = env.completion(
-            [{"role": "system", "content": prompt},
-             {"role": "system", "content": json.dumps(product_data)},
-             {"role": "user", "content": "what product choices do I have?"}],
-        )
-        # tools=tools,
-        # response_format={"type": "json_object"}  #should work according to Fireworks docs but is throwing 400
-
-        env.add_reply(result)
-
+    def route(self, protocol: dict):
+        message_type = list(protocol.keys())[0]
+        match message_type:
+            case "decision":
+                self.env.add_reply(json.dumps(request_data))
+            case "data":
+                self.env.add_reply(json.dumps(quote_with_shipping))
+                pass
+            case "payment_authorization":
+                self.env.add_reply(json.dumps(payment_result))
+            case "init":
+                help_menu(self.env)
+            case _:
+                raise ValueError(f"Unknown message type: {message_type}")
 
     def _process_search_results(self, search_results):
         """Default processing of search results from the google search API, returns result titles
@@ -208,72 +94,43 @@ class Agent:
     def completion(self, messages):
         self.env.add_reply(self.env.completion(messages))
 
+    def choose_test(self, user_message):
+        match user_message:
+            case "agent_data":
+                self.agent_data_test()
+            case "completion":
+                self.completion([{"role": "system", "content": "What's the answer to life, the universe, and everything?"}])
+            case "tool":
+                self.tool_test("what is the weather in New York today?")
+            case "request_decision":
+                self.request_decision_test()
+            case "dynamic_request_decision_test":
+                dynamic_request_decision_test(self.env)
+            case _:
+                help_menu(self.env)
+
     def run(self):
         try:
             env = self.env
-            user_message = env.get_last_message()
-
+            user_message = env.get_last_message()['content']
             print(f"User message: {user_message}")
-            match user_message["content"]:
-                case "agent_data":
-                    self.agent_data_test()
-                case "json_message":
-                    self.encoded_json_message_test()
-                case "completion":
-                    self.completion([{"role": "system", "content": "What's the answer to life, the universe, and everything?"}])
-                case "tool":
-                    self.tool_test("what is the weather in New York today?")
-                case "request_decision":
-                    self.request_decision_test()
-                case _:
-                    test_choices = {
-                        "$schema": "https://aitp.dev/v1/requests.schema.json",
-                        "request_decision": {
-                            "options": [
-                                {
-                                    "id": "agent_data",
-                                    "name": "agent_data",
-                                    "action": {
-                                        "$schema": "https://aitp.dev/v1/requests.schema.json",
-                                        "decision": {
-                                            "id": "agent_data",
-                                        }
-                                    }
-                                },
-                                {
-                                    "id": "completion",
-                                    "name": "completion",
-                                    "action": {
-                                        "$schema": "https://aitp.dev/v1/requests.schema.json",
-                                        "decision": {
-                                            "id": "completion",
-                                        }
-                                    }
-                                },
-                                {
-                                    "id": "tool",
-                                    "name": "tool",
-                                    "action": {
-                                        "$schema": "https://aitp.dev/v1/requests.schema.json",
-                                        "decision": {
-                                            "id": "tool",
-                                        }
-                                    }
-                                },
-                                {
-                                    "id": "request_decision",
-                                    "name": "request_decision",
-                                    "action": {
-                                        "$schema": "https://aitp.dev/v1/requests.schema.json",
-                                        "decision": {
-                                            "id": "request_decision",
-                                        }
-                                    }
-                                }
-                            ]
-                        }}
-                    env.add_reply("Specify a test to run.")
-                    env.add_reply(json.dumps(test_choices))
+
+            protocol = self.detect_protocol_message(user_message)
+            if protocol:
+                # catch decision messages
+                decision = protocol.get("decision")
+                print(f"decision: {decision}")
+                if decision:
+                    decision_id = decision.get("request_decision_id", "")
+                    option_id = decision.get("options", "")[0].get("id", "")
+                    if option_id.startswith("product"):
+                        self.route(protocol)
+                    else:
+                        self.choose_test(option_id)
+                else:
+                    self.route(protocol)
+            else:
+                self.choose_test(user_message)
         except Exception as e:
             # print stacktrace
             import traceback
