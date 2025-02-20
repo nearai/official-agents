@@ -4,6 +4,7 @@ from typing import Optional, Dict, Union
 from nearai.agents.environment import Environment, ThreadMode
 from openai.types.beta import Thread
 from nearai.shared.models import ThreadMode, RunMode
+from discovery import chat_with_vector_store
 
 BASE_PROMPT = "You are a helpful assistant that often calls other assistant agents to accomplish tasks for the user."
 PROMPTS = {
@@ -13,7 +14,12 @@ PROMPTS = {
     #   build a plan to accomplish the intent.
     "handle_user":
         f"""{BASE_PROMPT}
-If a user starts a new conversation (usually with a hello aitp message), tell them about your capabilities and ask them what they need help with.
+If asked about your capabilities or given a simple greeting or help message, tell the user about some of the example 
+tasks you can help with: planning travel, shopping for products, planning recipes, swapping crypto-currencies, and 
+using NEAR Protocol.
+
+If asked a more specific question, respond with both a short answer and a longer answer.
+If asked to accomplish a task, respond with both a short answer and with a plan to accomplish the user's intent.
 """,
 
     "handle_agent":
@@ -30,23 +36,24 @@ class Agent:
     """
     def __init__(self, env: Environment):
         self.env = env
+        self.discovery_vector_store_id = env.env_vars.get("discovery_vector_store_id", "vs_37babdabe471438391ed66dd")
 
 
-    # todo: implement
-    def discovery(self, user_message: str) -> Optional[str]:
-        """Placeholder for discovery calls."""
-        if "headphones" in user_message:
-            # look up relevant agents
-            # decide whether there is a relevant agent
-            # store the agent as the active service agent
-            # call the agent
-            return "flatirons.near/sound-sage/latest"
+    def discovery(self, user_message: str) -> Optional[dict]:
+        """Attempt to find a useful agent to handle the user's message.
+        user_message: the user's message
+        """
+        # vs_id = "vs_a0e2798f3f67434eb15ac297" #local    # prod"vs_37babdabe471438391ed66dd"
+        result = chat_with_vector_store(self.env, self.discovery_vector_store_id, user_message)
+        print(result)
+        agent_url = result.get("agent_url")
+        if agent_url:
+            return result
         else:
             return None
 
     def process_user_message(self, thread):
         """Processes the user message"""
-        prompt = {"role": "system", "content": PROMPTS["handle_user"]}
         user_message = self.env.get_last_message()["content"]
         protocol_message = self.detect_protocol_message(user_message)
         thread_data = self.env.get_agent_data_by_key(thread.id)
@@ -56,13 +63,17 @@ class Agent:
             self.process_user_protocol_message(protocol_message, active_service_agent)
         else:
             selected_agent = self.discovery(user_message)
-            self.env.save_agent_data(thread.id, {"active_service_agent": selected_agent})
 
             if selected_agent:
-                self.env.add_agent_log(f"Handing off to agent: {selected_agent}")
-                self.env.run_agent(selected_agent, query=user_message, thread_mode=ThreadMode.CHILD, run_mode=RunMode.WITH_CALLBACK)
+                selected_agent_id = selected_agent["agent_url"]
+                self.env.save_agent_data(thread.id, {"active_service_agent": selected_agent_id})
+                self.env.add_agent_log(f"Handing off to agent: {selected_agent_id}")
+                self.env.run_agent(selected_agent_id, query=selected_agent["message"], thread_mode=ThreadMode.CHILD, run_mode=RunMode.WITH_CALLBACK)
                 self.env.request_agent_input()
             else:
+                self.env.save_agent_data(thread.id, {"active_service_agent": ""})
+                print("No service agent found.")
+                prompt = {"role": "system", "content": PROMPTS["handle_user"]}
                 result = self.env.completion([prompt] + self.env.list_messages())
                 self.env.add_reply(result)
                 self.env.request_user_input()
