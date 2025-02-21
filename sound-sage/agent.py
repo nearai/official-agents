@@ -33,29 +33,47 @@ class Agent:
                 return {k: v for k, v in message.items() if k != "$schema"}
         return None
 
-    def route(self, protocol: dict):
+    async def route(self, protocol: dict):
         message_type = list(protocol.keys())[0]
         match message_type:
             case "decision":
+                # call mcp with prompt to add to cart, pass decision
+                messages = [{"role": "system", "content": "Add the following product to the cart"},
+                            {"role": "user", "content": json.dumps(protocol)}]
+                result = await self.shopping_mcp_server.run(messages)
+                print(result)
                 self.env.add_reply(json.dumps(request_data))
             case "data":
+                # call mcp with prompt to update user data, pass data
+                # todo: call mcp with prompt to return cart
+                messages = [{"role": "system", "content": "Update the user's shipping data"},
+                            {"role": "user", "content": json.dumps(protocol)}]
+                result = await self.shopping_mcp_server.run(messages)
+                print(result)
                 self.env.add_reply(json.dumps(quote_with_shipping))
                 pass
             case "payment_authorization":
+                # call mcp with prompt to check out, pass payment authorization
+                messages = [{"role": "system", "content": "Checkout with the following payment authorization"},
+                            {"role": "user", "content": json.dumps(protocol)}]
+                result = await self.shopping_mcp_server.run(messages)
+                print(result)
                 self.env.add_reply(json.dumps(payment_result))
             case _:
-                raise ValueError(f"Unknown message type: {message_type}")
+                self.env.add_agent_log(f"Unknown message type: {message_type}")
+                return self.handle_general_request(json.dumps(protocol))
 
     def process_search_results(self, search_results):
         product_processor = products_aitp.ProductsAITP(self.env)
-        aitp_request_decision = product_processor.generate_request_decision(search_results) # not implemented
+        aitp_request_decision = product_processor.generate_request_decision(search_results)
         return aitp_request_decision
+
         # future implementation
         # pass search_results to llm call to narrow them down and make recommendations.
         # Output should be recommendation text and reduced list
         # Convert list to aitp request decision format
         # validate that original (pre-LLM) product data matches data in AITP message
-        # process_search_results will handle the reply because there are multiple messages
+        # process_search_results should return both messages in the array. Or can use request_decision title & description
 
 
     def post_process_tools(self, tool_call, tool_result):
@@ -93,7 +111,7 @@ class Agent:
         user_message = env.get_last_message()['content']
         protocol = self.detect_protocol_message(user_message)
         if protocol:
-            self.route(protocol)
+            await self.route(protocol)
         else:
             await self.handle_general_request(user_message)
 
