@@ -94,6 +94,13 @@ class Agent:
         #
         # check_usdc_balance
         # Description: Check the USDC balance of a NEAR wallet
+        #
+        # aitp_amazon_update_cart_buyer_identity
+        # Description: Update cart buyer identity with shipping details
+        #
+        # aitp_amazon_get_cart_details
+        # Description: Get details for a specific cart
+        #
         print(f"Post processing Tool call: {tool_call.function.name}")
         match tool_call.function.name:
             case "aitp_amazon_search":
