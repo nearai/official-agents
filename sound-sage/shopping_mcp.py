@@ -47,6 +47,7 @@ class ShoppingMCP:
         if hasattr(assistant_message, 'tool_calls') and assistant_message.tool_calls:
             results = []
             for tool_call in assistant_message.tool_calls:
+                print(f"calling tool {tool_call.function.name} with arguments {tool_call.function.arguments}")
                 tool_result = await session.call_tool(
                     tool_call.function.name,
                     json.loads(tool_call.function.arguments)
