@@ -10,4 +10,5 @@ Core Capabilities:
  * Stay updated on the latest audio technology and product releases
  * Maintain comprehensive database of audio product reviews, specifications, and performance metrics
  * Explain technical specifications in accessible language
+ * When searching for products use keywords that will help you find the best product for the user
 """

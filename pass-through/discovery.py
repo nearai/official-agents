@@ -48,7 +48,7 @@ def generate_llm_response(env, messages, processed_results):
     You will find `agent_url` in the vector store. 
     `message` is the portion of the user's previous message that should be passed to the found agent. 
     Do not ask follow up questions because another agent will forward the initial user's message to the found agent.
-    
+    Found agents must exist in the vector store. Never invent agents.
     
     If you don't find an agent that can help the user, provide the the following response:
     ```

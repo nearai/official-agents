@@ -19,16 +19,26 @@ class Agent:
     def __init__(self, env: Environment):
         self.env = env
         self.shopping_mcp_server = ShoppingMCP(env, tool_post_processor_function=self.post_process_tools)
-        self.state = self.initialize_state()
+        self.thread = self.env.get_thread()
+        try:
+            self.state = self.initialize_state()
+        except Exception as e:
+            print(f"Error initializing state: {e}")
+            self.state = State()
 
     def initialize_state(self) -> State:
-        state_file = self.env.read_file(STATE_FILE)
-        if not state_file:
+        # store data by parent thread id if it exists, otherwise use the current thread_id
+        thread_id = self.thread.metadata["parent_id"] if self.thread.metadata["parent_id"] else self.thread.id
+        data = self.env.get_agent_data_by_key(thread_id)
+        saved_state = data.get("value") if data else None
+        print(f"saved_state: {saved_state}")
+        if not saved_state:
             return State()
-        return State.model_validate_json(state_file)
+        return State.model_validate(saved_state)
 
     def save_state(self):
-        self.env.write_file(STATE_FILE, self.state.model_dump_json())
+        thread_id = self.thread.metadata["parent_id"] if self.thread.metadata["parent_id"] else self.thread.id
+        self.env.save_agent_data(thread_id, self.state.model_dump())
 
     def request_decision_test(self, user_message):
         self.env.add_reply(json.dumps(request_decision))
@@ -51,18 +61,21 @@ class Agent:
         match message_type:
             case "decision":
                 # call mcp with prompt to add to cart, pass decision
-                messages = [{"role": "system", "content": """
+                cart_id = self.state.cart_ids[0] if self.state.cart_ids else ""
+                cart_clause = f"2. Current cart_id: {cart_id}" if cart_id else ""
+                messages = [{"role": "system", "content": f"""
                               Add the following product to the cart.
                               Considerations:
                               1. Only send the productId
+                              {cart_clause}
                               """},
                             {"role": "user", "content": json.dumps(protocol)}]
-                result = await self.shopping_mcp_server.run(messages)
-                print(result)
-                self.env.add_reply(json.dumps(request_data))
+                await self.shopping_mcp_server.run(messages)
+                self.env.add_reply(json.dumps(request_data)) # ask for shipping info
 
             case "data":
                 # call mcp with prompt to update user data and return current cart
+                cart_id = self.state.cart_ids[0] if self.state.cart_ids else ""
                 messages = [
                     {"role": "system", "content": """
                        Update the user's shipping data
@@ -71,16 +84,18 @@ class Agent:
                        2. Send the country as a 2 letter code in the 'countryCode' field, not the full country name
                     """},
                     {"role": "user", "content": json.dumps(protocol)},
-                    {"role": "system", "content": f"Current cart IDs: {self.state.cart_ids}"}
+                    {"role": "system", "content": f"Current cart_id: {cart_id}"}
                 ]
-                result = await self.shopping_mcp_server.run(messages)
+                await self.shopping_mcp_server.run(messages)
+                # tool call post-processing produces quote response which is sent by shopping_mcp code
 
             case "payment_authorization":
                 # call mcp with prompt to check out, pass payment authorization and cart info
+                cart_id = self.state.cart_ids[0] if self.state.cart_ids else ""
                 messages = [
                     {"role": "system", "content": "Checkout with the following payment authorization"},
                     {"role": "user", "content": json.dumps(protocol)},
-                    {"role": "system", "content": f"Cart IDs to process: {self.state.cart_ids}, Total amount: {self.state.total_amount}"}
+                    {"role": "system", "content": f"Cart ID to process: {cart_id}, Total amount: {self.state.total_amount}"}
                 ]
                 result = await self.shopping_mcp_server.run(messages)
 
@@ -97,7 +112,6 @@ class Agent:
 
     def process_search_results(self, search_results):
         product_processor = products_aitp.ProductsAITP(self.env)
-        print(f"Processing search results: {search_results}")
         aitp_request_decision = product_processor.generate_request_decision(search_results)
         return aitp_request_decision
 
