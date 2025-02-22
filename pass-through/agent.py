@@ -67,7 +67,7 @@ class Agent:
             if selected_agent:
                 selected_agent_id = selected_agent["agent_url"]
                 self.env.save_agent_data(thread.id, {"active_service_agent": selected_agent_id})
-                self.env.add_agent_log(f"Handing off to agent: {selected_agent_id}")
+                self.env.add_system_log(f"Handing off to new agent: {selected_agent_id}")
                 self.env.run_agent(selected_agent_id, query=selected_agent["message"], thread_mode=ThreadMode.CHILD, run_mode=RunMode.WITH_CALLBACK)
                 self.env.request_agent_input()
             else:
@@ -119,7 +119,7 @@ class Agent:
             pass
         elif "data" in keys:
             pass
-        self.env.add_agent_log(f"Handing off to active agent: {active_service_agent}")
+        self.env.add_system_log(f"Handing off to active agent: {active_service_agent}")
         self.env.run_agent(active_service_agent, query=json.dumps(message), thread_mode=ThreadMode.CHILD, run_mode=RunMode.WITH_CALLBACK)
         self.env.request_agent_input()
 
