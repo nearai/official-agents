@@ -1,11 +1,14 @@
+import traceback
+
 from mcp import ClientSession
 from mcp.client.sse import sse_client
 
 import json
 class ShoppingMCP:
     def __init__(self, env, tool_post_processor_function = None):
-        self.env = env
+        self.env = env # "http://host.docker.internal:3003") #
         self.mcp_server_url = env.env_vars.get("MCP_SERVER_URL", "https://5jfjt8xpp3.us-west-2.awsapprunner.com")
+        print(f"Using MCP server at {self.mcp_server_url}")
         self.session = None
         self.tools = []
         self.tool_post_processor_function = tool_post_processor_function
@@ -80,22 +83,28 @@ class ShoppingMCP:
         self.env.add_reply(tools_message)
 
     async def run(self, messages):
-        async with sse_client(f"{self.mcp_server_url}/sse") as streams:
-            async with ClientSession(streams[0], streams[1]) as session:
-                await session.initialize()
-                tools = await self.get_mcp_tools(session)
-                formatted_tools = self.format_mcp_tools(tools)
+        try:
+            async with sse_client(f"{self.mcp_server_url}/sse") as streams:
+                async with ClientSession(streams[0], streams[1]) as session:
+                    await session.initialize()
+                    tools = await self.get_mcp_tools(session)
+                    formatted_tools = self.format_mcp_tools(tools)
 
-                try:
-                    completion = self.env.completion_and_get_tools_calls(messages, tools=formatted_tools, run_tools=False)
-                except Exception as e:
-                    self.env.add_reply(f"Error processing chat completion with MCP tools: {e}")
-                    return
+                    try:
+                        completion = self.env.completion_and_get_tools_calls(messages, tools=formatted_tools, run_tools=False)
+                    except Exception as e:
+                        self.env.add_reply(f"Error processing chat completion with MCP tools: {e}")
+                        return
 
-                if completion.message:
-                    self.env.add_reply(completion.message)
-                if completion.tool_calls:
-                    results = await self.handle_tool_calls(session, completion)
-                    if results:
-                        for result in results:
-                            self.env.add_reply(result)
+                    if completion.message:
+                        self.env.add_reply(completion.message)
+                    if completion.tool_calls:
+                        results = await self.handle_tool_calls(session, completion)
+                        print(results)
+                        if results:
+                            for result in results:
+                                self.env.add_reply(result)
+        except Exception as e:
+            print(f"Error running MCP: {e}")
+            print(traceback.format_exc())
+            self.env.add_reply(f"Error running MCP: {e}")
