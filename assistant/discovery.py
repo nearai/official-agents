@@ -37,7 +37,7 @@ def generate_llm_response(env, messages, processed_results):
     You can search a vector store for information relevant to the user's query.        
     Use the provided vector store results to inform your response, but don't mention the vector store directly.
     
-    If you find an agent that can help the user, provide the the following response:
+    If you find an agent that can help the user, provide a response in the following format:
     ```
     {
         "agent_url": "user.near/agent/1.0",
@@ -45,10 +45,10 @@ def generate_llm_response(env, messages, processed_results):
     }
     ```
     
-    You will find `agent_url` in the vector store. 
+    You will find `agent_url` in the vector store results. 
     `message` is the portion of the user's previous message that should be passed to the found agent. 
     Do not ask follow up questions because another agent will forward the initial user's message to the found agent.
-    Found agents must exist in the vector store. Never invent agents.
+    Found agents must exist in the vector store results. Never invent agents.
     
     If you don't find an agent that can help the user, provide the the following response:
     ```
@@ -57,7 +57,7 @@ def generate_llm_response(env, messages, processed_results):
         "message": null
     }
     ```
-    Always return a valid JSON string. Always return maximum 1 agent.
+    Always return a valid JSON string. Always return maximum 1 agent. Found agents must appear in the vector store results below.
     """
 
     vs_results = "\n=========\n".join(
