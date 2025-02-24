@@ -232,9 +232,10 @@ payment_result = {
     "$schema": "https://aitp.dev/v1/payments.schema.json",
     "payment_result": {
         "transaction_id": "jfu9u439fr9ua3w9fja8fua9fu39ruaiesfh8efuap39",
-        "quote_id": "quote_1234",
+        "quote_id": "4qpQXbm7p5bgjuy1QKzi",
         "result": "success",
-        "message": "product_4 purchased successfully",
-        "timestamp": "2025-03-01T12:01:00Z"
+        "message": "JBL Tune 510BT - Bluetooth headphones purchased successfully",
+        "timestamp": "2025-03-01T12:01:00Z",
+        "details": []
     }
 }

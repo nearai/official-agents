@@ -44,7 +44,7 @@ class Agent:
 
     def initialize_state(self) -> State:
         # store data by parent thread id if it exists, otherwise use the current thread_id
-        thread_id = self.thread.metadata["parent_id"] if self.thread.metadata["parent_id"] else self.thread.id
+        thread_id = self.thread.metadata["parent_id"] if self.thread.metadata.get("parent_id", None) else self.thread.id
         data = self.env.get_agent_data_by_key(thread_id)
         saved_state = data.get("value") if data else None
         print(f"saved_state: {saved_state}")
@@ -53,7 +53,7 @@ class Agent:
         return State.model_validate(saved_state)
 
     def save_state(self):
-        thread_id = self.thread.metadata["parent_id"] if self.thread.metadata["parent_id"] else self.thread.id
+        thread_id = self.thread.metadata["parent_id"] if self.thread.metadata.get("parent_id", None) else self.thread.id
         self.env.save_agent_data(thread_id, self.state.model_dump())
 
     def request_decision_test(self, user_message):
@@ -94,7 +94,7 @@ class Agent:
                 cart_id = self.state.cart_ids[0] if self.state.cart_ids else ""
                 messages = [
                     {"role": "system", "content": """
-                       Update the user's shipping data
+                       Update the user's shipping data by updating the cart buyer identity.
                        Considerations:
                        1. Make sure to send only the information provided
                        2. Send the country as a 2 letter code in the 'countryCode' field, not the full country name
@@ -147,6 +147,7 @@ class Agent:
             print("Error saving state update-shipping-address: ", e)
 
         product_processor = products_aitp.ProductsAITP(self.env)
+        print("Generating quote response", result_dict)
         return product_processor.generate_quote_response(result_dict)
 
     def process_add_to_cart(self, result):
@@ -160,7 +161,7 @@ class Agent:
                 self.save_state()
         except Exception as e:
             print("Error saving state add-to-cart: ", e)
-        return result
+        return [] # cart message is only for debugging, route send request for shipping info
 
     def post_process_tools(self, tool_call, tool_result):
         # aitp_amazon_search
