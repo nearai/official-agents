@@ -1,149 +1,223 @@
-from nearai.agents.environment import Environment
-from nearai.shared.models import ThreadMode
+import json
 from pydantic import BaseModel
+from typing import Optional, Dict, Union
 
-STATE_FILE = "assistant_state.json"
+from nearai.agents.environment import Environment
+from openai.types.beta import Thread
+from nearai.shared.models import ThreadMode, RunMode
 
-REMEMBER_PROMPT = """
-You are an expert at deciding if parts of a message should be remembered in the user's memory.
-
-**Instructions:**
-
-- If parts of the message are relevant, respond with **ONLY** the parts that should be remembered.
-- If none of the message is relevant, respond with an empty string.
-- **Do not** include any additional text, explanations, or greetings.
-
-**Example Responses:**
-
-- If relevant parts: 
-    - ["The meeting is at 3 PM."]
-    - ["User's preference for email communication", "User likes bikes"]
-    - ["Important deadline mentioned"]
-    - ["Request for follow-up meeting"]
-    - ["Interest in specific product"]
-    - ["Feedback on service quality"]
-    - ["User's prefers the color red", "User's dog is called Rex"]
-
-- If no relevant parts: []
-"""
+from memory import to_remember
+from discovery import chat_with_vector_store
 
 
-def to_remember(message: str, env: Environment):
-    """Determines if parts of the message should be remembered."""
-    res = env.completion(
-        [
-            {"role": "system", "content": REMEMBER_PROMPT},
-            {"role": "user", "content": message},
-        ]
-    ).strip()
-    print("res in to_remember", res)
-    if res == "" or res == '""' or res == "[]":
+BASE_PROMPT = "You are a helpful assistant that often calls other assistant agents to accomplish tasks for the user."
+PROMPTS = {
+    "handle_user":
+        f"""{BASE_PROMPT}
+If asked about your capabilities or given a simple greeting or help message, tell the user about some of the example 
+tasks you can help with: planning travel, shopping for products, planning recipes, swapping crypto-currencies, and 
+using NEAR Protocol.
+
+If asked a more specific question, respond with both a short answer and a longer answer.
+If asked to accomplish a task, respond with both a short answer and with a plan to accomplish the user's intent.
+Don't refer to the type of answer you are providing, just provide the answer.
+"""}
+
+
+class Agent:
+    """Assistant Agent"""
+    def __init__(self, env: Environment):
+        self.env = env
+        self.discovery_vector_store_id = env.env_vars.get("discovery_vector_store_id", "vs_37babdabe471438391ed66dd")
+
+    def discovery(self, user_message: str) -> Optional[dict]:
+        """Attempt to find a useful agent to handle the user's message.
+        user_message: the user's message
+        """
+        result = chat_with_vector_store(self.env, self.discovery_vector_store_id, user_message)
+        print(result)
+        agent_url = result.get("agent_url")
+        if agent_url:
+            return result
+        else:
+            return None
+
+    def process_user_message(self, thread):
+        """Processes the user message"""
+        user_message = self.env.get_last_message()["content"]
+        protocol_message = self.detect_protocol_message(user_message)
+        thread_data = self.env.get_agent_data_by_key(thread.id)
+        thread_data_value = thread_data.get("value") if thread_data else None
+        active_service_agent = thread_data_value.get("active_service_agent") if thread_data_value else None
+
+        remember = to_remember(user_message, self.env)
+        if remember and remember != "":
+            self.env.add_user_memory(remember)
+            self.env.add_system_log(f"Memory updated: {remember}")
+
+        if protocol_message and active_service_agent:
+            self.process_user_protocol_message(protocol_message, active_service_agent)
+        else:
+            selected_agent = self.discovery(user_message)
+
+            if selected_agent:
+                selected_agent_id = selected_agent["agent_url"]
+                self.env.save_agent_data(thread.id, {"active_service_agent": selected_agent_id})
+                self.env.add_system_log(f"Handing off to new agent: {selected_agent_id}")
+                self.env.run_agent(selected_agent_id, query=selected_agent["message"], thread_mode=ThreadMode.CHILD, run_mode=RunMode.WITH_CALLBACK)
+                self.env.request_agent_input()
+            else:
+                self.env.save_agent_data(thread.id, {"active_service_agent": ""})
+                print("No service agent found.")
+                useful_memories = self.env.query_user_memory(user_message)
+                prompt = {"role": "system", "content": PROMPTS["handle_user"]}
+                memories = {
+                    "role": "system",
+                    "content": f"These are relevant user memories that pertain to the user's request:\n{useful_memories}"
+                }
+                result = self.env.completion([prompt, memories] + self.env.list_messages())
+                self.env.add_reply(result)
+                self.env.request_user_input()
+
+    def process_service_agent_message(self, subthread):
+        """Processes the service agent message, decides how to respond to the message."""
+        parent_thread = subthread.metadata.get("parent_id")
+
+        agent_to_agent_conversation = self.env.list_messages() # subthread messages
+        last_message = agent_to_agent_conversation[-1]
+        if not last_message or not last_message.get("content"):
+            self.env.add_reply("Sorry, something went wrong. Conversation with Service Agent was empty.")
+
+        protocol_message = self.detect_protocol_message(last_message)
+        if protocol_message:
+            self.process_service_agent_protocol_message(protocol_message, parent_thread)
+        else:
+            self.process_general_service_agent_message(last_message["content"], parent_thread)
+
+
+    def detect_protocol_message(self, message: Union[str,dict]) -> Optional[Dict]:
+        """Determines if the message is an AITP protocol message."""
+        # if the message is json and has a json $schema key starting with "https://aitp.dev" then it is a protocol message
+        # in that case, return all keys other than the $schema key
+        if isinstance(message, str):
+            if message.startswith("{") and message.endswith("}"):
+                try:
+                    message = json.loads(message)
+                except json.JSONDecodeError:
+                    return None
+            else:
+                return None
+        if message.get("$schema") and message["$schema"].startswith("https://aitp.dev"):
+            return message
         return None
-    return res
+
+    def process_user_protocol_message(self, message: dict, active_service_agent: str):
+        """Routes each type of protocol message expected by a client."""
+        keys = message.keys()
+        if "$schema" in keys:
+            pass # ignore the schema declaration
+        if "decision" in keys:
+            pass
+        elif "data" in keys:
+            pass
+        self.env.add_system_log(f"Handing off to active agent: {active_service_agent}")
+        self.env.run_agent(active_service_agent, query=json.dumps(message), thread_mode=ThreadMode.CHILD, run_mode=RunMode.WITH_CALLBACK)
+        self.env.request_agent_input()
+
+    def process_general_service_agent_message(self, last_message_text, parent_thread):
+        self.env.add_reply(last_message_text, thread_id=parent_thread)
+        self.env.request_user_input()
 
 
-class State(BaseModel):
-    user_query: str
-    useful_memories: str
-    child_thread_id: str
-    first_run_for_query: bool
-    ready_for_completions: bool
+    def process_service_agent_protocol_message(self, protocol_message: dict, parent_thread):
+        """Routes each type of protocol message expected by an agent."""
+        client_capabilities = self.client_capabilities(parent_thread)
+        keys = protocol_message.keys()
+        if "$schema" in keys:
+            pass # ignore the schema declaration
+        if "request_decision" in keys:
+            pass # process_request_decision
+        elif "request_data" in keys:
+            pass # process_protocol_data_request
+        elif "quote" in keys:
+            pass # todo available hook: decide whether to approve purchase or surface to user
+        elif "payment_result" in keys:
+            pass # todo available hook: store in user memory
+        self.env.add_reply(json.dumps(protocol_message), thread_id=parent_thread)
+        self.env.request_user_input()
 
 
-agents_mapping = {
-    "shopper": {"keywords": ["shop", "shirt", "shopping"], "agent": "flatirons.near/shopper/latest"},
-    "swap": {"keywords": ["swap", "btc", "eth"], "agent": "zavodil.near/swap-agent/latest"},
-    "memecoin": {"keywords": ["meme", "mint"], "agent": "jayzalowitz.near/memecoin_agent/latest"}
-}
+    # todo: available hook
+    def process_protocol_data_request(self):
+        """Determines whether the requested data is permitted to be shared with the service agent.
+         If so, decides whether it can answer the request or if it should be passed up to the user.
+         If not, decides whether to inform the user of the request (with a warning) or to choose another service agent.
+        """
+        pass
+
+    # todo: available hook
+    @staticmethod
+    def request_data_tool(fields: dict):
+        """When you need one or more pieces of data from a user, you can call this tool to request them.
+        fields: a json object in the format:
+        Examples: shipping data
+
+        """
+
+    # todo: available hook
+    def execute_user_focused_intent(self):
+        """Evaluates the capabilities of the client, decides how to effectuate the intent,
+         through a tool or through a text response."""
+        pass
+
+    # todo: available hook
+    def update_state_json(self):
+        """Writes to the state.json file, first performing validation"""
+        # write shopping cart data to state.json
+        pass
+
+    # todo: available hook
+    def process_request_decision(self):
+        # is the decision consequential/inconsequential and reversible/irreversible?
+        # if it is inconsequential and reversible, and all data is available make the decision
+        pass
 
 
-def initialize_state(env: Environment) -> State:
-    state_file = env.read_file(STATE_FILE)
-    if not state_file:
-        return State(
-            user_query="",
-            useful_memories="",
-            child_thread_id="",
-            first_run_for_query=True,
-            ready_for_completions=True,
-        )
-    return State.model_validate_json(state_file)
+    # todo: available hook: Mocked for now
+    def client_capabilities(self, thread):
+        """Retrieve client capabilities from the thread."""
 
-
-def process_first_run(state: State, env: Environment):
-    user_query = env.list_messages()[-1]["content"]
-    state.user_query = user_query
-
-    remember = to_remember(user_query, env)
-    if remember and remember != "":
-        env.add_user_memory(remember)
-        env.add_system_log(f"Memory updated: {remember}")
-
-    state.useful_memories = env.query_user_memory(user_query)
-
-    print(f"user_query: {user_query}")
-    for key, info in agents_mapping.items():
-        # check if any keyword is in the user query
-        if any(keyword in user_query for keyword in info["keywords"]):
-            agent_path = info["agent"]
-            print(f"Calling agent: {agent_path}")
-            child_thread = env.run_agent(
-                agent_path, thread_mode=ThreadMode.SAME
-            )
-            state.child_thread_id = child_thread
-            state.ready_for_completions = False
-            break
-
-    state.first_run_for_query = False
-
-
-def process_completions(state: State, env: Environment):
-    previous_messages = env.list_messages()[:-1]
-
-    child_messages = env.list_messages(state.child_thread_id)
-
-    completion = env.completion(
-        messages=[
-            {
-                "role": "system",
-                "content": "You are the ultimate assistant, and you are tasked to always follow what user wants.",
-            },
-            {
-                "role": "user",
-                "content": str(previous_messages),
-            },
-            {
-                "role": "system",
-                "content": f"Here are relevant user memories for his request:\n{state.useful_memories}",
-            },
-            {
-                "role": "system",
-                "content": f"Response from an agent that was required to satisfy users query:\n{str(child_messages)}",
-            },
-            {"role": "user", "content": state.user_query},
+        return [
+            {"$schema": "https://aitp.dev/v1/requests.schema.json" },
+            {"$schema": "https://aitp.dev/v1/data.schema.json" },
+            {"$schema": "https://aitp.dev/v1/payments.schema.json" }
         ]
-    )
-    env.add_reply(completion)
 
-    state.child_thread_id = ""
-    state.first_run_for_query = True
-    state.ready_for_completions = True
+    def handle_callback_failure(self, subthread):
+        """Handles a callback failure by re-requesting input from the user."""
+        parent_thread_id = subthread.metadata.get("parent_id")
+        self.env.add_reply("Looks like I had trouble connecting you to a specialist agent. "
+                       "You can try your request again or try a different request.", thread_id=parent_thread_id)
+        self.env.request_user_input()
+
+    def run(self):
+        # get thread, check whether it has a parent_id
+        thread = self.env.get_thread()
+
+        parent_id: Thread = thread.metadata.get("parent_id")
+        print(f"parent_id: {parent_id}")
+        if parent_id:
+            last_message = self.env.list_messages()[-1] # all messages, not just user messages
+            last_role = last_message.get("role")
+            if last_role == "assistant":
+                self.process_service_agent_message(thread)
+            else:
+                self.handle_callback_failure(thread)
+        else:
+            self.process_user_message(thread)
 
 
-def task(env: Environment):
-    state = initialize_state(env)
+if globals().get('env', None):
+    agent = Agent(globals().get('env'))
+    agent.run()
 
-    # this happens on callback of an agent
-    if state.child_thread_id:
-        state.ready_for_completions = True
-
-    if state.first_run_for_query:
-        process_first_run(state, env)
-
-    if state.ready_for_completions:
-        process_completions(state, env)
-
-    env.write_file(STATE_FILE, state.model_dump_json())
-
-
-task(env)
