@@ -1,5 +1,6 @@
 # This agent helps users buy audio equipment.
 import json
+import time
 from typing import Dict, Optional
 import datetime
 
@@ -106,21 +107,31 @@ class Agent:
                 # tool call post-processing produces quote response which is sent by shopping_mcp code
 
             case "payment_authorization":
-                # call mcp with prompt to check out, pass payment authorization and cart info
-                cart_id = self.state.cart_ids[0] if self.state.cart_ids else ""
-                messages = [
-                    {"role": "system", "content": "Checkout with the following payment authorization"},
-                    {"role": "user", "content": json.dumps(protocol)},
-                    {"role": "system", "content": f"Cart ID to process: {cart_id}, Total amount: {self.state.total_amount}"}
-                ]
-                result = await self.shopping_mcp_server.run(messages)
+                # mock
+                print("Payment authorization received")
+
+                transaction_id = protocol["payment_authorization"]["transaction_id"]
+                mock_result = payment_result
+                mock_result["payment_result"]["transaction_id"] = transaction_id
+                mock_result["payment_result"]["timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+                self.env.add_reply(json.dumps(payment_result))
+
+                # # call mcp with prompt to check out, pass payment authorization and cart info
+                # cart_id = self.state.cart_ids[0] if self.state.cart_ids else ""
+                # messages = [
+                #     {"role": "system", "content": "Checkout with the following payment authorization"},
+                #     {"role": "user", "content": json.dumps(protocol)},
+                #     {"role": "system", "content": f"Cart ID to process: {cart_id}, Total amount: {self.state.total_amount}"}
+                # ]
+
+                # result = await self.shopping_mcp_server.run(messages)
 
                 # Clear cart after successful payment
-                if result and getattr(result, 'success', False):
-                    self.state.clear_cart()
-                    self.save_state()
-
-                self.env.add_reply(json.dumps(payment_result))
+                # if result and getattr(result, 'success', False):
+                #     self.state.clear_cart()
+                #     self.save_state()
+                #
+                # self.env.add_reply(json.dumps(payment_result))
 
             case _:
                 self.env.add_agent_log(f"Unknown message type: {message_type}")

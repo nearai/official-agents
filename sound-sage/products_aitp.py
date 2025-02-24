@@ -95,8 +95,9 @@ class ProductsAITP:
         quote_time = (datetime.datetime.now() + datetime.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         # Extract costs from the result
-        subtotal = result["body"]["cost"]["subtotal"]["value"] / 100  # Convert cents to dollars
-        shipping = result["body"]["cost"]["shipping"]["value"] / 100
+        # todo: using demo values, restore real code
+        subtotal = 0.01 # result["body"]["cost"]["subtotal"]["value"] / 100  # Convert cents to dollars
+        shipping = 0.00 # result["body"]["cost"]["shipping"]["value"] / 100
 
         quote_response = {
             "$schema": "https://aitp.dev/v1/payments.schema.json",
