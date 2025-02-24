@@ -102,7 +102,7 @@ class ProductsAITP:
             "$schema": "https://aitp.dev/v1/payments.schema.json",
             "quote": {
                 "type": "Quote",
-                "payee_id": "amazon",
+                "payee_id": "sound-sage.near",
                 "quote_id": result["body"]["id"],
                 "payment_plans": [
                     {
