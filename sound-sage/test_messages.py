@@ -186,6 +186,7 @@ data = {
 }
 
 quote_with_shipping = {
+    "$schema": "https://aitp.dev/v1/payments/schema.json",
     "quote": {
         "type": "Quote",
         "payee_id": "foobar",
