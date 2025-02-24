@@ -96,6 +96,10 @@ class ProductsAITP:
 
         # Extract costs from the result
         subtotal = result["body"]["cost"]["subtotal"]["value"] / 100  # Convert cents to dollars
+        margin_price = result["body"]["cost"]["margin"]["value"]
+        if margin_price:
+            subtotal += (margin_price / 100)
+
         shipping = result["body"]["cost"]["shipping"]["value"] / 100
 
         quote_response = {

@@ -109,9 +109,13 @@ class Agent:
                 # call mcp with prompt to check out, pass payment authorization and cart info
                 cart_id = self.state.cart_ids[0] if self.state.cart_ids else ""
                 messages = [
-                    {"role": "system", "content": "Checkout with the following payment authorization"},
+                    {"role": "system", "content": """
+                        Checkout with the following payment authorization
+                        Considerations:
+                        1. Make sure to send full and complete tool parameters from the user's provided details
+                     """},
                     {"role": "user", "content": json.dumps(protocol)},
-                    {"role": "system", "content": f"Cart ID to process: {cart_id}, Total amount: {self.state.total_amount}"}
+                    {"role": "system", "content": f"Cart ID to process: {cart_id}"}
                 ]
                 result = await self.shopping_mcp_server.run(messages)
 
@@ -208,6 +212,7 @@ class Agent:
         env = self.env
         user_message = env.get_last_message()['content']
         protocol = self.detect_protocol_message(user_message)
+
         if protocol:
             await self.route(protocol)
         else:
