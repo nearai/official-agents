@@ -10,7 +10,7 @@
     "agent": {
       "welcome": {
         "title": "NEAR AI. The only Assistant you need.",
-        "description": "What can I help you with today? I can answer questions and call other agents to accomplish tasks for you. For example: 'shop for headphones', 'swap NEAR for BTC', 'create a memecoin about space', 'shop for new shirts', , 'remember my favorite color is purple'."
+        "description": "What can I help you with today? I can answer questions and call other agents to accomplish tasks for you. For example: 'shop for headphones', 'swap NEAR for BTC', 'create a memecoin about space', 'shop for new shirts', 'remember my favorite color is purple'."
       },
       "defaults": {
         "max_iterations": 1,

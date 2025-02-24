@@ -49,7 +49,7 @@ def help_menu(env):
                     }
                 },
                 {
-                    "id": "dynamic_request_decision_test",
+                    "id": "dynamic_request_decision",
                     "name": "llm request_decision",
                     "action": {
                         "$schema": "https://aitp.dev/v1/requests.schema.json",

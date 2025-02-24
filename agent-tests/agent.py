@@ -104,7 +104,7 @@ class Agent:
                 self.tool_test("what is the weather in New York today?")
             case "request_decision":
                 self.request_decision_test()
-            case "dynamic_request_decision_test":
+            case "dynamic_request_decision":
                 dynamic_request_decision_test(self.env)
             case _:
                 help_menu(self.env)

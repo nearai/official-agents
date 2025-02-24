@@ -1,6 +1,6 @@
 {
   "category": "agent",
-  "description": "This agent tests features.",
+  "description": "This agent tests basic features.",
   "tags": [
     "test"
   ],
@@ -30,5 +30,5 @@
   },
   "show_entry": true,
   "name": "agent-tests",
-  "version": "0.0.2"
+  "version": "0.0.3"
 }

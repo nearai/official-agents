@@ -94,8 +94,8 @@ def dynamic_request_decision_test(env):
         [{"role": "system", "content": prompt},
          {"role": "system", "content": json.dumps(product_data)},
          {"role": "user", "content": "what product choices do I have?"}],
+        response_format={"type": "json_object"}
     )
     # tools=tools,
-    # response_format={"type": "json_object"}  #should work according to Fireworks docs but is throwing 400
 
     env.add_reply(result)

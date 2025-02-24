@@ -1,6 +1,6 @@
 {
   "name": "pass-through",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A test of assistant style pass through messages to other agents.",
   "category": "agent",
   "tags": ["assistant"],
