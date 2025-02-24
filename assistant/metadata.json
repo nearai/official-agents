@@ -1,24 +1,29 @@
 {
+  "name": "assistant",
+  "version": "0.0.3",
   "category": "agent",
-  "description": "The only assistant you need",
-  "tags": [],
+  "description": "A general Assistant agent that can help a user with a variety of questions and can call other agents to accomplish tasks.",
+  "tags": ["assistant"],
   "details": {
-    "display_name": "NearAI Assistant",
-    "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/User-student-assistant.svg/170px-User-student-assistant.svg.png",
+    "display_name": "NEAR AI Assistant",
+    "icon": "https://app.near.ai/official-agent-images/orb.png",
     "agent": {
       "welcome": {
-        "title": "NearAI. The only Assistant you need.",
-        "description": "What can I help you with today? I can answer questions and call other agents to accomplish tasks for you. For example: 'create a memecoin about space', 'shop for new shirts', 'swap NEAR for BTC', 'remember my favorite color is purple'."
+        "title": "NEAR AI. The only Assistant you need.",
+        "description": "What can I help you with today? I can answer questions and call other agents to accomplish tasks for you. For example: 'shop for headphones', 'swap NEAR for BTC', 'create a memecoin about space', 'shop for new shirts', , 'remember my favorite color is purple'."
       },
       "defaults": {
         "max_iterations": 1,
-        "model": "llama-v3p2-3b-instruct",
-        "model_max_tokens": 16384,
+        "model": "llama-v3p3-70b-instruct",
+        "model_max_tokens": 4000,
         "model_provider": "fireworks"
       }
-    }
+    },
+    "capabilities": [
+      {"$schema": "https://aitp.dev/v1/requests.schema.json" },
+      {"$schema": "https://aitp.dev/v1/data.schema.json" },
+      {"$schema": "https://aitp.dev/v1/payments.schema.json" }
+    ]
   },
-  "show_entry": true,
-  "name": "assistant",
-  "version": "0.0.2"
+  "show_entry": true
 }
