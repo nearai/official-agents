@@ -94,11 +94,13 @@ class Agent:
                 cart_id = self.state.cart_ids[0] if self.state.cart_ids else ""
                 messages = [
                     {"role": "system", "content": """
-                       Update the user's shipping data by updating the cart buyer identity.
-                       Considerations:
-                       1. Make sure to send only the information provided
-                       2. Send the country as a 2 letter code in the 'countryCode' field, not the full country name
-                       3. Send the state as a 2 letter code in the 'provinceCode' field, not the full state name
+                        Update the user's shipping data by updating the cart buyer identity.
+                        Considerations:
+                        1. Make sure to send only the information provided
+                        2. Send the country as a 2 letter code in the 'countryCode' field, not the full country name
+                        3. Send the state as a 2 letter code in the 'provinceCode' field, not the full state name
+                        4. Validate all required shipping fields are present
+                        5. Ensure address line 1 is not empty
                     """},
                     {"role": "user", "content": json.dumps(protocol)},
                     {"role": "system", "content": f"Current cart_id: {cart_id}"}
@@ -114,7 +116,9 @@ class Agent:
                         Checkout with the following payment authorization
                         Considerations:
                         1. Make sure to send full and complete tool parameters from the user's provided details
-                     """},
+                        2. Check for any required payment additional fields
+                        3. Handle multi-currency conversion if needed
+                    """},
                     {"role": "user", "content": json.dumps(protocol)},
                     {"role": "system", "content": f"Cart ID to process: {cart_id}"}
                 ]
@@ -144,16 +148,39 @@ class Agent:
         # process_search_results should return both messages in the array. Or can use request_decision title & description
 
     def process_cart_buyer_identity_update(self, result):
-        result_dict = json.loads(result[0])
         try:
-            self.state.update_shipping_address(result_dict["body"]["buyerIdentity"])
-            self.save_state()
-        except Exception as e:
-            print("Error saving state update-shipping-address: ", e)
+            result_dict = json.loads(result[0]) if isinstance(result, (list, tuple)) else result
+            print(f"result_dict: {result_dict}")
 
-        product_processor = products_aitp.ProductsAITP(self.env)
-        print("Generating quote response", result_dict)
-        return product_processor.generate_quote_response(result_dict)
+            # Validate result_dict has required structure
+            if not isinstance(result_dict, dict):
+                print("Error: Invalid result format - expected dictionary")
+                return None
+
+            # Check if body exists and handle missing key
+            if 'body' not in result_dict:
+                print("Error: Missing 'body' key in result")
+                return None
+
+            # Update shipping address if buyer identity exists
+            buyer_identity = result_dict.get('body', {}).get('buyerIdentity')
+            if buyer_identity:
+                try:
+                    self.state.update_shipping_address(buyer_identity)
+                    self.save_state()
+                except Exception as e:
+                    print("Error saving state update-shipping-address: ", e)
+
+            product_processor = products_aitp.ProductsAITP(self.env)
+            print("Generating quote response", result_dict)
+            return product_processor.generate_quote_response(result_dict)
+
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON result: {e}")
+            return None
+        except Exception as e:
+            print(f"Error processing cart buyer identity update: {e}")
+            return None
 
     def process_add_to_cart(self, result):
         result_dict = json.loads(result[0])
