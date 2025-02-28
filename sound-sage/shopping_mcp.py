@@ -45,6 +45,15 @@ class ShoppingMCP:
                 results.append(content.text)
         return results
 
+    async def direct_tool_call(self, function_name, params):
+        async with sse_client(f"{self.mcp_server_url}/sse") as streams:
+            async with ClientSession(streams[0], streams[1]) as session:
+                await session.initialize()
+                tool_result = await session.call_tool(
+                    function_name,
+                    json.loads(params)
+                )
+                return await self.process_tool_result(tool_result)
 
     async def handle_tool_calls(self, session, assistant_message):
         if hasattr(assistant_message, 'tool_calls') and assistant_message.tool_calls:
