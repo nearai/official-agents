@@ -1,0 +1,17 @@
+{
+    "name": "cdp_langchain_chatbot_example_usage",
+    "version": "0.0.1",
+    "description": "Coinbase agentkit chatbot example usage",
+    "category": "agent",
+    "tags": [],
+    "details": {
+      "agent": {
+        "defaults": {
+          "model": "qwen2p5-72b-instruct",
+          "inference_framework": "nearai"
+        },
+        "framework": "agentkit"
+      }
+    },
+    "show_entry": true
+  }
