@@ -11,7 +11,7 @@ class State(BaseModel):
         self.total_amount += price
 
     def update_shipping_address(self, shipping_address: Dict[str, str]):
-        self.shipping_address = shipping_address
+        self.shipping_address = {k: v if v is not None else "" for k, v in shipping_address.items()}
 
     def clear_cart(self):
         self.cart_ids = []
