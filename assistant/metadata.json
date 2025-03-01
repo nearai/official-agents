@@ -1,6 +1,6 @@
 {
   "name": "assistant",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "category": "agent",
   "description": "A general Assistant agent that can help a user with a variety of questions and can call other agents to accomplish tasks.",
   "tags": ["assistant"],
