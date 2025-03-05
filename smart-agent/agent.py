@@ -1,7 +1,7 @@
 # This agent helps users buy audio equipment.
 import json
 from typing import Dict, Optional
-from shopping_mcp import ShoppingMCP
+from shopping_api import ShoppingAPI
 
 import asyncio
 from nearai.agents.environment import Environment
@@ -29,7 +29,7 @@ Obs.: If you have any tools available, use them to help the user, and also tell 
 class Agent:
     def __init__(self, env: Environment):
         self.env: Environment = env
-        self.shopping_mcp_server = ShoppingMCP(env)
+        self.shopping_api = ShoppingAPI(env)
         self.thread = self.env.get_thread()
         try:
             self.state = self.initialize_state()
@@ -67,14 +67,11 @@ class Agent:
     async def handle_first_contact(self):
         """Handle the first interaction with the user."""
         try:
-            # Initialize MCP server and get available tools
-            await self.shopping_mcp_server.initialize()
-
             messages = [
                 {"role": "system", "content": presentation_prompt},
                 {"role": "user", "content": self.env.get_last_message()['content']}
             ]
-            await self.shopping_mcp_server.run(messages)
+            await self.shopping_api.run(messages)
         except Exception as e:
             print(f"Error in first contact: {e}")
             self.env.add_reply("I apologize, but I'm having trouble connecting to my tools. Let me try to help you without them.")
@@ -86,10 +83,11 @@ class Agent:
                 {"role": "system", "content": "You are a helpful assistant that can help the user with their requests."},
                 {"role": "system", "content": "If the response has a schema, format the response to be a json object following exactly the schema."},
             ] + self.env.list_messages()
-            await self.shopping_mcp_server.run(messages)
+            await self.shopping_api.run(messages)
         except Exception as e:
             print(f"Error in general request: {e}")
             self.env.add_reply("I encountered an error processing your request. Could you please try rephrasing it?")
+            raise e
 
     async def run(self):
         """Main execution flow."""
@@ -101,6 +99,7 @@ class Agent:
         except Exception as e:
             print(f"Error in agent run: {e}")
             self.env.add_reply("I apologize, but I encountered an unexpected error. Please try again.")
+            raise e
 
 if globals().get('env', None):
     agent = Agent(globals().get('env', {}))
