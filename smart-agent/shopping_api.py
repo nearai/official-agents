@@ -5,6 +5,8 @@ import json
 import requests
 from prompt import request_decision_example, schema_mock, hello_mock
 
+context_file = "context.json"
+
 class ShoppingAPI:
     def __init__(self, env):
         self.env = env
@@ -33,8 +35,11 @@ class ShoppingAPI:
             results.append(json.dumps(tool_result['body']))
         else:
             try:
-                result_json = json.loads(body)
-                results.append(json.dumps(result_json, indent=2))
+                if isinstance(body, dict):
+                    results.append(json.dumps(body, indent=2))
+                else:
+                    result_json = json.loads(body)
+                    results.append(json.dumps(result_json, indent=2))
             except json.JSONDecodeError:
                 results.append(body)
         return results
@@ -44,7 +49,7 @@ class ShoppingAPI:
             "type": "function",
             "function": {
                 "name": tool['name'],
-                "description": tool['description'] if hasattr(tool, 'description') else None,
+                "description": (tool['description'] if hasattr(tool, 'description') else "") + ("\n\n Tool Instructions: " + tool['prompt'] if hasattr(tool, 'prompt') else ""),
                 "parameters": {
                     "type": "object",
                     "properties": tool['inputSchema']['properties'],
@@ -60,7 +65,7 @@ class ShoppingAPI:
             results = []
             for tool_call in assistant_message.tool_calls:
                 print(f"Calling tool {tool_call.function.name} with arguments {tool_call.function.arguments}")
-                self.env.add_reply(f"Calling tool {tool_call.function.name} with arguments {tool_call.function.arguments}")
+                self.env.add_system_log(f"Calling tool {tool_call.function.name} with arguments {tool_call.function.arguments}")
                 try:
                     tool = next((t for t in self.tools if t['name'] == tool_call.function.name), None)
                     if not tool:
@@ -72,12 +77,10 @@ class ShoppingAPI:
 
                     # Handle path parameters in endpoint
                     data = json.loads(tool_call.function.arguments)
-                    if '{' in endpoint and '}' in endpoint:
-                        for param in tool.get('inputSchema', {}).get('properties', []):
-                            param_name = param['name']
-                            if param_name in data and f"{{{param_name}}}" in endpoint:
-                                endpoint = endpoint.replace(f"{{{param_name}}}", str(data[param_name]))
-                                del data[param_name]  # Remove from body data after using in path
+                    for param_name, param_info in tool.get('inputSchema', {}).get('properties', {}).items():
+                        if param_name in data and f"{{{param_name}}}" in endpoint:
+                            endpoint = endpoint.replace(f"{{{param_name}}}", str(data[param_name]))
+                            del data[param_name]
 
                     url = f"{self.api_url}/{endpoint.lstrip('/')}"
                     headers = {"Content-Type": "application/json"}
@@ -88,79 +91,93 @@ class ShoppingAPI:
                         params = '&'.join([f"{k}={v}" for k, v in data.items()])
                         full_url = f"{url}{'?' if params else ''}{params}"
                         response = requests.get(full_url, headers=headers)
-                        self.env.add_reply(f"URL: {full_url}")
+                        self.env.add_system_log(f"URL: {full_url}")
                     else:
                         # For POST/PUT/DELETE, send data in body
                         response = requests.request(method, url, headers=headers, json=data)
-                        self.env.add_reply(f"URL: {url}")
+                        self.env.add_system_log(f"URL: {url}")
 
-                    self.env.add_reply(f"Response: {response.json()}")
+                    self.env.add_system_log(f"Response: {response.json()}")
 
                     response.raise_for_status()
                     tool_result = response.json()
                     result = await self.process_tool_result(tool_result)
                     if result:
                         results.extend(result)
+                        self.save_state(tool_call.function.name, result)
                 except Exception as e:
                     error_msg = f"Error executing tool {tool_call.function.name}: {e}"
                     print(error_msg)
+                    self.save_state(tool_call.function.name, error_msg)
                     results.append(error_msg)
-                    raise e
             return results
 
     async def get_tool_schema(self, assistant_message):
         if hasattr(assistant_message, 'tool_calls') and assistant_message.tool_calls:
             for tool_call in assistant_message.tool_calls:
-                self.env.add_reply(f"Getting tool schema for {tool_call.function.name}")
-                self.env.add_reply(f"Tools: {str(self.tools)}")
+                self.env.add_system_log(f"Getting tool schema for {tool_call.function.name}")
+                self.env.add_system_log(f"Tools: {str(self.tools)}")
                 tool = next((t for t in self.tools if t['name'] == tool_call.function.name), None)
                 if tool:
                     # Convert tool to a serializable dictionary, excluding any methods
-                    self.env.add_reply(f"Tool found: {json.dumps(tool)}")
+                    self.env.add_system_log(f"Tool found: {json.dumps(tool)}")
                     return tool['schema'] if 'schema' in tool else None
         return None
 
-    async def handle_schema_response(self, schema, results, messages):
+    def is_code_block(self, code):
+        return code.startswith("```") and code.endswith("```")
+
+    def remove_null_values(self, obj):
+        if isinstance(obj, dict):
+            return {k: self.remove_null_values(v) for k, v in obj.items() if v is not None}
+        elif isinstance(obj, list):
+            return [self.remove_null_values(i) for i in obj if i is not None]
+        return obj
+
+    def sanitize_schema(self, schema):
+        return self.remove_null_values(schema)
+
+    async def handle_schema_response(self, schema, results):
         schema_url = schema.get("url")
-        self.env.add_reply(f"Received results in schema handler: {results}")
-        self.env.add_reply(f"Received messages in schema handler: {messages}")
-        self.env.add_reply(f"Received schema in schema handler: {schema}")
-
         json_schema = self.fetch_schema(schema_url)
-        # json_schema = schema_mock
-        # if json_schema:
-        #     request_decision_schema = self.get_request_decision_schema(json_schema)
-        #     if request_decision_schema:
-        #         json_schema = request_decision_schema
-                # json_schema['$schema'] = "https://aitp.dev/capabilities/aitp-02-decisions/v1.0.0/schema.json"
 
-        comp = self.env.completion(
-            messages + [{"role": "user", "content": str(results)}, {"role": "system", "content": """
-                ### Schema:
-                {json_schema}
-            """}],
-            response_format={"type": "json_object", "schema": json_schema}
-        )
-        self.env.add_reply(f"Completion in tool_calls: {comp}")
+        messages = [{"role": "system", "content": """You are a developer. You are given a schema and a content. Your task is to fill the schema with the content provided by the user.
+                     The output must be a code that returns a 'result' variable containing the final output. Do not include any other text since the code block will be executed programmatically.
+                     - The code must be in Python.
+                     - DO NOT USE ANY EXTERNAL LIBRARIES AND BE CAREFUL WITH THE IMPORTS - the code runs in an isolated environment
+                     - Return the result in a 'result' variable pure dict, don't run json.loads or json.dumps on it
+                     - The code must start with exactly '```python' and end with exactly '```'
+                     """},
+            {"role": "user", "content": f"""
+            ## Content: {str(results)}
+            ## Schema: {json_schema}
+            """}]
+
+        if schema.get("prompt"):
+            messages.append({"role": "system", "content": "Specific instructions for the code: " + schema.get("prompt")})
+
+        code = self.env.completion(messages, temperature=0.1)
+        self.env.add_system_log(f"Completion in tool_calls: {code}")
+
         try:
-            # Handle both string and object responses
-            if isinstance(comp, str):
-                comp_dict = json.loads(comp)
-            elif hasattr(comp, 'content'):
-                # If comp is an object with content attribute
-                comp_dict = json.loads(comp.content)
-            elif isinstance(comp, dict):
-                comp_dict = comp
+            if self.is_code_block(code):
+                code = code.replace("```python", "").replace("```", "")
+                # Create a local dictionary to capture variables from exec
+                local_dict = {}
+                # Execute the code with the local dictionary
+                exec(code, {}, local_dict)
+                self.env.add_system_log(f"Local dict: {local_dict}")
+                self.env.add_system_log(f"Local dict result: {local_dict.get('result')}")
+                result = self.sanitize_schema(local_dict.get('result'))
+                # Return the result - assuming the code creates a 'result' variable
+                self.env.add_reply(json.dumps(result))
+                return result
             else:
-                raise TypeError(f"Unexpected completion type: {type(comp)}")
-
-            if comp_dict.get("$schema") != schema_url:
-                comp_dict["$schema"] = schema_url
-            self.env.add_reply(json.dumps(comp_dict))
-        except (json.JSONDecodeError, TypeError, KeyError, AttributeError) as e:
-            print(f"Error processing completion schema: {e}")
-            # Fallback to original response if processing fails
-            self.env.add_reply(str(comp))
+                raise ValueError("Invalid code")
+        except Exception as e:
+            print(f"Error executing code: {e}")
+            self.env.add_reply(traceback.format_exc())
+            return None
 
     def extract_tools_from_aitp_hello(self, response):
         # Parse the response string into JSON if it's not already parsed
@@ -185,6 +202,7 @@ class ShoppingAPI:
                 "name": api_command['command'],
                 "method": api_command['method'],
                 "endpoint": api_command['endpoint'],
+                "prompt": api_command['prompt'],
                 "description": api_command['description'],
                 "inputSchema": {
                     "type": "object",
@@ -197,25 +215,46 @@ class ShoppingAPI:
         return tools
 
     async def get_aitp_hello(self):
-        self.env.add_reply(f"Getting AITP hello")
-        return hello_mock
+        self.env.add_system_log(f"Getting AITP hello")
+        return requests.get(f"{self.api_url}/hello").json()
+
+    async def initialize(self):
+        hello_response = await self.get_aitp_hello()
+        self.tools = self.extract_tools_from_aitp_hello(hello_response)
+        self.env.add_system_log(format_tools_message(self.tools))
+
+    def get_state(self):
+        all_files = self.env.list_files(self.env.get_agent_temp_path())
+        if context_file in all_files:
+            try:
+                _state = self.env.read_file(context_file)
+                parsed_dict = json.loads(_state)
+                return parsed_dict
+            except json.JSONDecodeError:
+                return {}
+        else:
+            return {}
+
+    def save_state(self, key, value):
+        current_state = self.get_state()
+        current_state[key] = value
+        self.env.add_system_log(f"Saving state: {current_state}")
+        self.env.write_file(context_file, json.dumps(current_state, indent=2))
 
     async def run(self, messages):
         try:
-            # all_tools = await requests.get(f"{self.api_url}/hello")
-            hello_response = await self.get_aitp_hello()
-            # self.env.add_reply(f"Hello response: {hello_response}")
-            self.tools = self.extract_tools_from_aitp_hello(hello_response)
-            # self.env.add_reply(f"Tools: {self.tools}")
+            await self.initialize()
+
             tools_description = self.format_mcp_tools(self.tools)
-            completion = self.env.completion_and_get_tools_calls(messages, tools=tools_description, run_tools=False)
-            # print(f"Completion received: {completion}")
-            # self.env.add_system_log(f"Completion: {completion}")
+            self.env.add_system_log(f"Messages: {messages}")
+            if self.get_state():
+                messages.append({"role": "user", "content": "Context: " + self.get_state()})
+
+            completion = self.env.completion_and_get_tools_calls(messages, tools=tools_description, run_tools=False, temperature=0.0)
         except Exception as e:
             error_msg = f"Error processing chat completion with MCP tools: {e}"
             print(error_msg)
             self.env.add_reply(error_msg)
-            raise e
             return
 
         if completion.message:
@@ -223,21 +262,21 @@ class ShoppingAPI:
         if completion.tool_calls:
             results = await self.handle_tool_calls(completion)
             if results:
-                self.env.add_reply(f"Results: {results}")
+                self.env.add_system_log(f"Results: {results}")
                 schema = await self.get_tool_schema(completion)
-                self.env.add_reply(f"Schema: {schema}")
+                self.env.add_system_log(f"Schema: {schema}")
                 if schema:
-                    await self.handle_schema_response(schema, results, messages)
+                    await self.handle_schema_response(schema, results)
                 else:
-                    self.env.add_reply(json.dumps(results))
+                    output = self.env.completion(
+                        messages=[{"role": "system", "content": "Show the results in a friendly format"}, {"role": "user", "content": str(results)}]
+                    )
+                    self.env.add_reply(output)
 
-    # def get_request_decision_schema(self, json_schema):
-    #     # Find the schema containing request_decision from anyOf array
-    #     for schema_variant in json_schema.get('anyOf', []):
-    #         if 'request_decision' in schema_variant.get('properties', {}):
-    #             # Remove '#' from the beginning of the reference if present
-    #             ref = schema_variant['properties']['$schema']['$ref']
-
-    #             schema_variant['properties']['$schema']['$ref'] = "https://aitp.dev/capabilities/aitp-02-decisions/v1.0.0/schema.json" + ref
-    #             return schema_variant
-    #     return None
+def format_tools_message(tools):
+    if not tools:
+        return "No tools available"
+    tool_descriptions = []
+    for tool in tools:
+        tool_descriptions.append(f"{tool['name']}: {tool['description']}")
+    return f"Available tools:\n{chr(10).join(tool_descriptions)}"
