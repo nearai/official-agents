@@ -1,18 +1,23 @@
 from pydantic import BaseModel
-from typing import List, Dict, Optional
+from typing import Dict, Any
 
 class State(BaseModel):
-    cart_ids: List[str] = []
-    total_amount: float = 0.0
-    shipping_address: Dict[str, str] = {}
+    data: Dict[str, Any] = {}
 
-    def add_to_cart(self, product_id: str, price: float):
-        self.cart_ids.append(product_id)
-        self.total_amount += price
+    def set(self, key: str, value: Any) -> None:
+        self.data[key] = value
 
-    def update_shipping_address(self, shipping_address: Dict[str, str]):
-        self.shipping_address = shipping_address
+    def get(self, key: str, default: Any = None) -> Any:
+        return self.data.get(key, default)
 
-    def clear_cart(self):
-        self.cart_ids = []
-        self.total_amount = 0.0
+    def update(self, values: Dict[str, Any]) -> None:
+        self.data.update(values)
+
+    def clear(self, key: str = None) -> None:
+        if key is None:
+            self.data.clear()
+        else:
+            self.data.pop(key, None)
+
+    def delete(self, key: str) -> None:
+        self.data.pop(key, None)

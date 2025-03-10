@@ -3,9 +3,6 @@ from mcp import ClientSession
 from mcp.client.sse import sse_client
 import json
 import requests
-from prompt import request_decision_example, schema_mock, hello_mock
-
-context_file = "context.json"
 
 class ShoppingAPI:
     def __init__(self, env):
@@ -44,26 +41,42 @@ class ShoppingAPI:
                 results.append(body)
         return results
 
-    def format_mcp_tools(self, tools):
+    def format_tools_to_llm(self, tools):
         return [{
             "type": "function",
             "function": {
                 "name": tool['name'],
                 "description": (tool['description'] if hasattr(tool, 'description') else "") + ("\n\n Tool Instructions: " + tool['prompt'] if hasattr(tool, 'prompt') else ""),
-                "parameters": {
-                    "type": "object",
-                    "properties": tool['inputSchema']['properties'],
-                    "required": tool['inputSchema']['required'] if 'required' in tool['inputSchema'] else [],
-                    "additionalProperties": tool['inputSchema']['additionalProperties'] if 'additionalProperties' in tool['inputSchema'] else False
-                }
+                "parameters": tool['parameters']
             }
         } for tool in tools]
+
+    def update_state(self, tool_name, result):
+        self.state.set(tool_name, result)
+        self.save_state()
+
+    def is_all_required_params_filled(self, tool_call):
+        tool = next((t for t in self.tools if t['name'] == tool_call.function.name), None)
+        if not tool:
+            raise Exception(f"Tool {tool_call.function.name} not found")
+
+        parameters = tool.get('parameters', {})
+        required_params = parameters.get('required', [])
+        arguments = json.loads(tool_call.function.arguments)
+
+        return all(param in arguments and bool(arguments[param]) for param in required_params)
 
 
     async def handle_tool_calls(self, assistant_message):
         if hasattr(assistant_message, 'tool_calls') and assistant_message.tool_calls:
             results = []
             for tool_call in assistant_message.tool_calls:
+                input_schema = await self.get_tool_schema(assistant_message, 'input_schema')
+                if input_schema and not self.is_all_required_params_filled(tool_call):
+                    self.env.add_system_log(f"Input schema: {input_schema}")
+                    await self.handle_schema_llm_call(input_schema, tool_call.function.arguments)
+                    return None
+
                 print(f"Calling tool {tool_call.function.name} with arguments {tool_call.function.arguments}")
                 self.env.add_system_log(f"Calling tool {tool_call.function.name} with arguments {tool_call.function.arguments}")
                 try:
@@ -77,7 +90,7 @@ class ShoppingAPI:
 
                     # Handle path parameters in endpoint
                     data = json.loads(tool_call.function.arguments)
-                    for param_name, param_info in tool.get('inputSchema', {}).get('properties', {}).items():
+                    for param_name, param_info in tool.get('parameters', {}).get('properties', {}).items():
                         if param_name in data and f"{{{param_name}}}" in endpoint:
                             endpoint = endpoint.replace(f"{{{param_name}}}", str(data[param_name]))
                             del data[param_name]
@@ -104,25 +117,25 @@ class ShoppingAPI:
                     result = await self.process_tool_result(tool_result)
                     if result:
                         results.extend(result)
-                        self.save_state(tool_call.function.name, result)
+                        self.update_state(tool_call.function.name, result)
                 except Exception as e:
                     error_msg = f"Error executing tool {tool_call.function.name}: {e}"
                     print(error_msg)
-                    self.save_state(tool_call.function.name, error_msg)
+                    self.update_state(tool_call.function.name, error_msg)
                     results.append(error_msg)
             return results
 
-    async def get_tool_schema(self, assistant_message):
+    async def get_tool_schema(self, assistant_message, schema_key):
         if hasattr(assistant_message, 'tool_calls') and assistant_message.tool_calls:
             for tool_call in assistant_message.tool_calls:
                 self.env.add_system_log(f"Getting tool schema for {tool_call.function.name}")
-                self.env.add_system_log(f"Tools: {str(self.tools)}")
                 tool = next((t for t in self.tools if t['name'] == tool_call.function.name), None)
                 if tool:
                     # Convert tool to a serializable dictionary, excluding any methods
                     self.env.add_system_log(f"Tool found: {json.dumps(tool)}")
-                    return tool['schema'] if 'schema' in tool else None
+                    return tool[schema_key] if schema_key in tool else None
         return None
+
 
     def is_code_block(self, code):
         return code.startswith("```") and code.endswith("```")
@@ -137,19 +150,21 @@ class ShoppingAPI:
     def sanitize_schema(self, schema):
         return self.remove_null_values(schema)
 
-    async def handle_schema_response(self, schema, results):
+    async def handle_schema_llm_call(self, schema, data):
         schema_url = schema.get("url")
         json_schema = self.fetch_schema(schema_url)
 
-        messages = [{"role": "system", "content": """You are a developer. You are given a schema and a content. Your task is to fill the schema with the content provided by the user.
+        messages = [{"role": "system", "content": f"""You are a developer. You are given a schema and a content. Your task is to fill the schema with the content provided by the user.
                      The output must be a code that returns a 'result' variable containing the final output. Do not include any other text since the code block will be executed programmatically.
+                     - The $schema property must be respected. It should be the first line of the 'result' output and it should be '{schema_url}'.
                      - The code must be in Python.
+                     - Do not use fake data, you have the information provided by the user
                      - DO NOT USE ANY EXTERNAL LIBRARIES AND BE CAREFUL WITH THE IMPORTS - the code runs in an isolated environment
                      - Return the result in a 'result' variable pure dict, don't run json.loads or json.dumps on it
                      - The code must start with exactly '```python' and end with exactly '```'
                      """},
             {"role": "user", "content": f"""
-            ## Content: {str(results)}
+            ## Content: {str(data)}
             ## Schema: {json_schema}
             """}]
 
@@ -204,15 +219,25 @@ class ShoppingAPI:
                 "endpoint": api_command['endpoint'],
                 "prompt": api_command['prompt'],
                 "description": api_command['description'],
-                "inputSchema": {
+                "parameters": {
                     "type": "object",
                     "properties": properties,
                     "required": required_params,
                 },
-                "schema": api_command['schema'] if 'schema' in api_command else None,
+                "output_schema": api_command['outputSchema'] if 'outputSchema' in api_command else None,
+                "input_schema": api_command['inputSchema'] if 'inputSchema' in api_command else None,
             }
             tools.append(tool)
         return tools
+
+
+    def format_tools_message(self, tools):
+        if not tools:
+            return "No tools available"
+        tool_descriptions = []
+        for tool in tools:
+            tool_descriptions.append(f"{tool['name']}: {tool['description']}")
+        return f"Available tools:\n{chr(10).join(tool_descriptions)}"
 
     async def get_aitp_hello(self):
         self.env.add_system_log(f"Getting AITP hello")
@@ -221,34 +246,19 @@ class ShoppingAPI:
     async def initialize(self):
         hello_response = await self.get_aitp_hello()
         self.tools = self.extract_tools_from_aitp_hello(hello_response)
-        self.env.add_system_log(format_tools_message(self.tools))
+        self.env.add_system_log(self.format_tools_message(self.tools))
 
-    def get_state(self):
-        all_files = self.env.list_files(self.env.get_agent_temp_path())
-        if context_file in all_files:
-            try:
-                _state = self.env.read_file(context_file)
-                parsed_dict = json.loads(_state)
-                return parsed_dict
-            except json.JSONDecodeError:
-                return {}
-        else:
-            return {}
 
-    def save_state(self, key, value):
-        current_state = self.get_state()
-        current_state[key] = value
-        self.env.add_system_log(f"Saving state: {current_state}")
-        self.env.write_file(context_file, json.dumps(current_state, indent=2))
-
-    async def run(self, messages):
+    async def run(self, messages, state, save_state):
         try:
             await self.initialize()
+            self.state = state
+            self.save_state = save_state
 
-            tools_description = self.format_mcp_tools(self.tools)
-            self.env.add_system_log(f"Messages: {messages}")
-            if self.get_state():
-                messages.append({"role": "user", "content": "Context: " + self.get_state()})
+            tools_description = self.format_tools_to_llm(self.tools)
+            self.env.add_system_log(f"State: {state}")
+            if state:
+                messages.append({"role": "user", "content": "If you need to fill a tool parameter, use the following context only: " + state.model_dump_json()})
 
             completion = self.env.completion_and_get_tools_calls(messages, tools=tools_description, run_tools=False, temperature=0.0)
         except Exception as e:
@@ -263,20 +273,12 @@ class ShoppingAPI:
             results = await self.handle_tool_calls(completion)
             if results:
                 self.env.add_system_log(f"Results: {results}")
-                schema = await self.get_tool_schema(completion)
+                schema = await self.get_tool_schema(completion, 'output_schema')
                 self.env.add_system_log(f"Schema: {schema}")
                 if schema:
-                    await self.handle_schema_response(schema, results)
+                    await self.handle_schema_llm_call(schema, results)
                 else:
                     output = self.env.completion(
                         messages=[{"role": "system", "content": "Show the results in a friendly format"}, {"role": "user", "content": str(results)}]
                     )
                     self.env.add_reply(output)
-
-def format_tools_message(tools):
-    if not tools:
-        return "No tools available"
-    tool_descriptions = []
-    for tool in tools:
-        tool_descriptions.append(f"{tool['name']}: {tool['description']}")
-    return f"Available tools:\n{chr(10).join(tool_descriptions)}"

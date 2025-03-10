@@ -83,7 +83,7 @@ class Agent:
                 {"role": "system", "content": "You are a helpful assistant that can help the user with their requests."},
                 {"role": "system", "content": "If the response has a schema, format the response to be a json object following exactly the schema."},
             ] + self.env.list_messages()
-            await self.shopping_api.run(messages)
+            await self.shopping_api.run(messages, self.state, self.save_state)
         except Exception as e:
             print(f"Error in general request: {e}")
             self.env.add_reply("I encountered an error processing your request. Could you please try rephrasing it?")
