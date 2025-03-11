@@ -5,8 +5,8 @@ from aitp import Aitp
 from state import State
 
 presentation_prompt = f"""You are Smart Agent.
-
-If you have any tools available, use them to help the user, and also tell the user about the tools you have available - But make sure to tell what you can do in a friendly user way, and not in a technical way.
+Be friendly and helpful.
+Help the user with their requests.
 """
 
 class Agent:
