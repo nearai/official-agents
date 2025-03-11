@@ -1,9 +1,7 @@
 {
   "category": "agent",
-  "description": "SoundSage is your personal AI audio expert, making it effortless to find and purchase the perfect headphones, speakers, and audio gear.",
-  "tags": [
-    "shopping", "commerce", "amazon"
-  ],
+  "description": "Agent that uses AITP protocol to comunicate.",
+  "tags": ["aitp"],
   "details": {
     "agent": {
       "defaults": {
@@ -18,12 +16,12 @@
         ]
       },
       "welcome": {
-        "description": "SoundSage is your personal AI audio expert, making it effortless to find and purchase the perfect headphones, speakers, and audio gear",
-        "title": "SoundSage"
+        "description": "Agent that uses AITP protocol to comunicate.",
+        "title": "AITP Agent"
       }
     },
-    "display_name": "Smart Agent",
-    "icon": "https://app.near.ai/official-agent-images/sound-sage.png",
+    "display_name": "AITP Agent",
+    "icon": "https://app.near.ai/official-agent-images/aitp-agent.png",
     "capabilities": [
       {"$schema": "https://aitp.dev/v1/requests.schema.json" },
       {"$schema": "https://aitp.dev/v1/data.schema.json" },
@@ -31,6 +29,6 @@
     ]
   },
   "show_entry": true,
-  "name": "smart-agent",
+  "name": "aitp-agent",
   "version": "0.0.1"
 }

@@ -14,8 +14,8 @@ class State(BaseModel):
         self.data.update(values)
 
     def clear(self, key: str = None) -> None:
-        if key is None:
-            self.data.clear()
+        if not key:
+            self.data = {}
         else:
             self.data.pop(key, None)
 
