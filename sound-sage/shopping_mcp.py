@@ -7,7 +7,7 @@ import json
 class ShoppingMCP:
     def __init__(self, env, tool_post_processor_function = None):
         self.env = env # "http://host.docker.internal:3003") #
-        self.mcp_server_url = env.env_vars.get("MCP_SERVER_URL", "https://6161-201-48-154-69.ngrok-free.app")
+        self.mcp_server_url = env.env_vars.get("MCP_SERVER_URL")
         print(f"Using MCP server at {self.mcp_server_url}")
         self.session = None
         self.tools = []

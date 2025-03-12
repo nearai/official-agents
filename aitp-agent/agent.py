@@ -4,9 +4,13 @@ from nearai.agents.environment import Environment
 from aitp import Aitp
 from state import State
 
+tool_prompt = "If the user asks what you can do, and if you have tools available, use the tools descriptions to tell the user what you can do."
+
 presentation_prompt = f"""You are Smart Agent.
 Be friendly and helpful.
 Help the user with their requests.
+
+{tool_prompt}
 """
 
 class Agent:
@@ -40,7 +44,7 @@ class Agent:
                 {"role": "system", "content": presentation_prompt},
                 {"role": "user", "content": self.env.get_last_message()['content']}
             ]
-            await self.aitp.run(messages)
+            await self.aitp.run(messages, self.state, self.save_state)
         except Exception as e:
             print(f"Error in first contact: {e}")
             self.env.add_reply("I apologize, but I'm having trouble connecting to my tools. Let me try to help you without them.")
@@ -51,6 +55,7 @@ class Agent:
             messages = [
                 {"role": "system", "content": "You are a helpful assistant that can help the user with their requests."},
                 {"role": "system", "content": "If the response has a schema, format the response to be a json object following exactly the schema."},
+                {"role": "system", "content": tool_prompt},
             ] + self.env.list_messages()
             await self.aitp.run(messages, self.state, self.save_state)
         except Exception as e:
@@ -61,7 +66,7 @@ class Agent:
     async def run(self):
         """Main execution flow."""
         try:
-            if len(self.env.list_messages()) == 0:
+            if len(self.env.list_messages()) == 1:
                 await self.handle_first_contact()
             else:
                 await self.handle_general_request()

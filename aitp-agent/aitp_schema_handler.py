@@ -31,11 +31,18 @@ class AitpSchemaHandler(object):
 
     while retry_count < max_retries:
         try:
-            schema_url = schema.get("url")
-            self.env.add_system_log(f"Fetching schema from URL: {schema_url}")
-            json_schema = self.fetch_schema_from_url(schema_url)
+            json_schema = None
+            schema_url = None
+            if schema.get("url"):
+                schema_url = schema.get("url")
+                self.env.add_system_log(f"Fetching schema from URL: {schema_url}")
+                json_schema = self.fetch_schema_from_url(schema_url)
+            elif schema.get("$schema"):
+                json_schema = schema
+            else:
+                raise ValueError("No schema found")
 
-            self.env.add_system_log(f"Schema Fetched: {json_schema}")
+            self.env.add_system_log(f"Schema: {json_schema}")
 
             if not json_schema:
                 self.env.add_system_log("No schema found on the provided URL")

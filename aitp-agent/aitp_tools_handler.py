@@ -74,10 +74,11 @@ class AitpToolsHandler(object):
     if hasattr(assistant_message, 'tool_calls') and assistant_message.tool_calls:
         results = []
         for tool_call in assistant_message.tool_calls:
+            tool = self.get_tool_by_name(tool_call.function.name)
             input_schema = await self.get_tool_schema(assistant_message, 'input_schema')
 
-            if input_schema: # only use the schema if it still has any required params to be filled
-                if not self.is_tools_params_ready(tool_call):
+            if input_schema: # only use the schema if it still has any required params to be filled or if the tool requires payment
+                if not self.is_tools_params_ready(tool_call) or tool.get('payment_required', False):
                     self.env.add_system_log(f"Input schema: {input_schema}")
                     await self.aitp_schema_handler.handle_schema_llm_call(input_schema, tool_call.function.arguments)
                     return None

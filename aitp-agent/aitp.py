@@ -53,6 +53,7 @@ class Aitp(object):
                 },
                 "output_schema": api_command['outputSchema'] if 'outputSchema' in api_command else None,
                 "input_schema": api_command['inputSchema'] if 'inputSchema' in api_command else None,
+                "payment_required": api_command['paymentRequired'] if 'paymentRequired' in api_command else False,
             }
             tools.append(tool)
         return tools

@@ -117,7 +117,6 @@ class Agent:
                         Considerations:
                         1. Make sure to send full and complete tool parameters from the user's provided details
                         2. Check for any required payment additional fields
-                        3. Handle multi-currency conversion if needed
                     """},
                     {"role": "user", "content": json.dumps(protocol)},
                     {"role": "system", "content": f"Cart ID to process: {cart_id}"}
