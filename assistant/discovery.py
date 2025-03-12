@@ -57,7 +57,7 @@ def generate_llm_response(env, messages, processed_results):
         "message": null
     }
     ```
-    Always return a valid JSON string. Always return maximum 1 agent. Found agents must appear in the vector store results below.
+    Always return a valid JSON string. Always return maximum 1 agent. Do not return any text other than the JSON object. Found agents must appear in the vector store results below.
     """
 
     vs_results = "\n=========\n".join(
@@ -81,8 +81,15 @@ def process_vector_results(results) -> List[Dict[str, Any]]:
 
 def parse_response(response):
     try:
-        print("Parsing response", response)
+        print("Parsing discovery response", response)
         parsed_response = json.loads(response)
+        # demos
+        agent_url = parsed_response.get("agent_url", "")
+        if agent_url.startswith("flatirons.near") or agent_url.startswith("zavodil.near"):
+            parts = agent_url.split("/")
+            agent_url = f"{parts[0]}/{parts[1]}/latest"
+            parsed_response["agent_url"] = agent_url
+
         return parsed_response
 
     except Exception:

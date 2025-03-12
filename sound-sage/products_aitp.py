@@ -95,12 +95,7 @@ class ProductsAITP:
         quote_time = (datetime.datetime.now() + datetime.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         # Extract costs from the result
-        subtotal = result["body"]["cost"]["subtotal"]["value"] / 100  # Convert cents to dollars
-        margin_price = result["body"]["cost"]["margin"]["value"]
-        if margin_price:
-            subtotal += (margin_price / 100)
-
-        shipping = result["body"]["cost"]["shipping"]["value"] / 100
+        total = result["body"]["cost"]["total"]["value"] / 100  # Convert cents to dollars
 
         quote_response = {
             "$schema": "https://aitp.dev/v1/payments.schema.json",
@@ -110,17 +105,12 @@ class ProductsAITP:
                 "quote_id": result["body"]["id"],
                 "payment_plans": [
                     {
-                        "amount": subtotal,
-                        "currency": result["body"]["cost"]["subtotal"]["currency"],
+                        "amount": total,
+                        "currency": result["body"]["cost"]["total"]["currency"],
                         "plan_id": "amazon",
                         "plan_type": "one-time"
                     },
-                    {
-                        "amount": shipping,
-                        "currency": result["body"]["cost"]["shipping"]["currency"],
-                        "plan_id": "shipping",
-                        "plan_type": "one-time"
-                    }
+                    # could break out subtotal, shipping, taxes, and margin here
                 ],
                 "valid_until": quote_time
             }
