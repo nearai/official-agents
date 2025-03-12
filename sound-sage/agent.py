@@ -1,15 +1,12 @@
 # This agent helps users buy audio equipment.
 import json
 from typing import Dict, Optional
-import datetime
 
 from shopping_mcp import ShoppingMCP
 import products_aitp
-import payments_aitp
-import checkout_aitp
 import asyncio
 from nearai.agents.environment import Environment
-from test_messages import request_decision, request_data, quote_with_shipping, payment_authorization, payment_result
+from test_messages import request_data
 from state import State
 
 STATE_FILE = "sound_sage_state.json"
@@ -56,9 +53,6 @@ class Agent:
         thread_id = self.thread.metadata["parent_id"] if self.thread.metadata.get("parent_id", None) else self.thread.id
         self.env.save_agent_data(thread_id, self.state.model_dump())
 
-    def request_decision_test(self, user_message):
-        self.env.add_reply(json.dumps(request_decision))
-
     def detect_protocol_message(self, message: str) -> Optional[Dict]:
         """Determines if the message is an AITP protocol message."""
         # if the message is json and has a json $schema key starting with "https://aitp.dev" then it is a protocol message
@@ -94,13 +88,11 @@ class Agent:
                 cart_id = self.state.cart_ids[0] if self.state.cart_ids else ""
                 messages = [
                     {"role": "system", "content": """
-                        Update the user's shipping data by updating the cart buyer identity.
-                        Considerations:
-                        1. Make sure to send only the information provided
-                        2. Send the country as a 2 letter code in the 'countryCode' field, not the full country name
-                        3. Send the state as a 2 letter code in the 'provinceCode' field, not the full state name
-                        4. Validate all required shipping fields are present
-                        5. Ensure address line 1 is not empty
+                       Update the user's shipping data by updating the cart buyer identity.
+                       Considerations:
+                       1. Make sure to send only the information provided
+                       2. Send the country as a 2 letter code in the 'countryCode' field, not the full country name
+                       3. Send the state as a 2 letter code in the 'provinceCode' field, not the full state name. Send only the state 2 letter state code and nothing more in the 'provinceCode' field.
                     """},
                     {"role": "user", "content": json.dumps(protocol)},
                     {"role": "system", "content": f"Current cart_id: {cart_id}"}
@@ -111,28 +103,55 @@ class Agent:
             case "payment_authorization":
                 # call mcp with prompt to check out, pass payment authorization and cart info
                 cart_id = self.state.cart_ids[0] if self.state.cart_ids else ""
-                messages = [
-                    {"role": "system", "content": """
-                        Checkout with the following payment authorization
-                        Considerations:
-                        1. Make sure to send full and complete tool parameters from the user's provided details
-                        2. Check for any required payment additional fields
-                    """},
-                    {"role": "user", "content": json.dumps(protocol)},
-                    {"role": "system", "content": f"Cart ID to process: {cart_id}"}
-                ]
-                result = await self.shopping_mcp_server.run(messages)
+                payment_authorization = protocol.get("payment_authorization")
+                details = payment_authorization.get("details")[0]
+                transaction_hash = details.get("transaction_id")
+                sender_id = details.get("account_id")
+                amountUSDC = details.get("amount")
+                params = {
+                    "cartId": cart_id,
+                    "transactionHash": transaction_hash,
+                    "senderId": sender_id,
+                    "amountUSDC": amountUSDC * 1000000
+                }
+                result = await self.shopping_mcp_server.direct_tool_call("aitp_amazon_checkout", json.dumps(params))
+                response = result[0]
+                json_response = json.loads(response)
+                if json_response and json_response.get("statusCode") == 200:
+                    reply = self.generate_payment_result(payment_authorization, json_response.get("body"))
 
-                # Clear cart after successful payment
-                if result and getattr(result, 'success', False):
-                    self.state.clear_cart()
-                    self.save_state()
+                    # Clear cart after successful payment
+                    if json_response.get("status", "ERROR") == "COMPLETED":
+                        self.state.clear_cart()
+                        self.save_state()
 
-                self.env.add_reply(json.dumps(payment_result))
+                    self.env.add_reply(json.dumps(reply))
+                else:
+                    print(f"Error processing order: {json.dumps(result)} {json.dumps(payment_authorization)}")
+                    reply = "Error processing order. Your funds should have been refunded. If they were not, please contact support@near.ai and include the transaction id of your payment."
+                    self.env.add_reply(reply)
 
             case _:
                 self.env.add_agent_log(f"Unknown message type: {message_type}")
                 return self.handle_general_request(json.dumps(protocol))
+
+    def generate_payment_result(self, payment_authorization, response):
+        details = payment_authorization.get("details", {})[0]
+        transaction_hash = details.get("transaction_id", "")
+        quote_id = payment_authorization.get("quote_id", "")
+        result = "success" if response.get("status", "ERROR") == "COMPLETED" else "failure"
+        order_id = response.get("orderId", "No Order Id")
+        return {
+            "$schema": "https://aitp.dev/v1/payments.schema.json",
+            "payment_result": {
+                "transaction_id": transaction_hash,
+                "quote_id": quote_id,
+                "result": result,
+                "message": f"Order id: {order_id}",
+                "timestamp": payment_authorization.get("timestamp", ""),
+                "details": []
+            }
+        }
 
     def process_search_results(self, search_results):
         product_processor = products_aitp.ProductsAITP(self.env)
@@ -147,39 +166,16 @@ class Agent:
         # process_search_results should return both messages in the array. Or can use request_decision title & description
 
     def process_cart_buyer_identity_update(self, result):
+        result_dict = json.loads(result[0])
         try:
-            result_dict = json.loads(result[0]) if isinstance(result, (list, tuple)) else result
-            print(f"result_dict: {result_dict}")
-
-            # Validate result_dict has required structure
-            if not isinstance(result_dict, dict):
-                print("Error: Invalid result format - expected dictionary")
-                return None
-
-            # Check if body exists and handle missing key
-            if 'body' not in result_dict:
-                print("Error: Missing 'body' key in result")
-                return None
-
-            # Update shipping address if buyer identity exists
-            buyer_identity = result_dict.get('body', {}).get('buyerIdentity')
-            if buyer_identity:
-                try:
-                    self.state.update_shipping_address(buyer_identity)
-                    self.save_state()
-                except Exception as e:
-                    print("Error saving state update-shipping-address: ", e)
-
-            product_processor = products_aitp.ProductsAITP(self.env)
-            print("Generating quote response", result_dict)
-            return product_processor.generate_quote_response(result_dict)
-
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON result: {e}")
-            return None
+            self.state.update_shipping_address(result_dict["body"]["buyerIdentity"])
+            self.save_state()
         except Exception as e:
-            print(f"Error processing cart buyer identity update: {e}")
-            return None
+            print("Error saving state update-shipping-address: ", e)
+
+        product_processor = products_aitp.ProductsAITP(self.env)
+        print("Generating quote response", result_dict)
+        return product_processor.generate_quote_response(result_dict)
 
     def process_add_to_cart(self, result):
         result_dict = json.loads(result[0])
