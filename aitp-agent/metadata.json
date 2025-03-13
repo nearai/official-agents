@@ -1,7 +1,9 @@
 {
   "category": "agent",
   "description": "Agent that uses AITP protocol to comunicate.",
-  "tags": ["aitp"],
+  "tags": [
+    "aitp"
+  ],
   "details": {
     "agent": {
       "defaults": {
@@ -15,20 +17,30 @@
           }
         ]
       },
+      "embed": {
+        "logo": "aitp-agent-icon.png"
+      },
       "welcome": {
         "description": "Agent that uses AITP protocol to comunicate.",
-        "title": "AITP Agent"
+        "title": "AITP Agent",
+        "icon": "aitp-agent-icon.png"
       }
     },
     "display_name": "AITP Agent",
-    "icon": "https://app.near.ai/official-agent-images/aitp-agent.png",
+    "icon": "aitp-agent-icon.png",
     "capabilities": [
-      {"$schema": "https://aitp.dev/v1/requests.schema.json" },
-      {"$schema": "https://aitp.dev/v1/data.schema.json" },
-      {"$schema": "https://aitp.dev/v1/payments.schema.json" }
+      {
+        "$schema": "https://aitp.dev/v1/requests.schema.json"
+      },
+      {
+        "$schema": "https://aitp.dev/v1/data.schema.json"
+      },
+      {
+        "$schema": "https://aitp.dev/v1/payments.schema.json"
+      }
     ]
   },
   "show_entry": true,
   "name": "aitp-agent",
-  "version": "0.0.1"
+  "version": "0.0.8"
 }
