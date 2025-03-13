@@ -1,0 +1,46 @@
+{
+  "category": "agent",
+  "description": "Agent that uses AITP protocol to comunicate.",
+  "tags": [
+    "aitp"
+  ],
+  "details": {
+    "agent": {
+      "defaults": {
+        "max_iterations": 1,
+        "models": [
+          {
+            "model": "llama-v3p3-70b-instruct",
+            "model_max_tokens": 8000,
+            "model_provider": "fireworks",
+            "model_temperature": 1
+          }
+        ]
+      },
+      "embed": {
+        "logo": "aitp-agent-icon.png"
+      },
+      "welcome": {
+        "description": "Agent that uses AITP protocol to comunicate.",
+        "title": "AITP Agent",
+        "icon": "aitp-agent-icon.png"
+      }
+    },
+    "display_name": "AITP Agent",
+    "icon": "aitp-agent-icon.png",
+    "capabilities": [
+      {
+        "$schema": "https://aitp.dev/v1/requests.schema.json"
+      },
+      {
+        "$schema": "https://aitp.dev/v1/data.schema.json"
+      },
+      {
+        "$schema": "https://aitp.dev/v1/payments.schema.json"
+      }
+    ]
+  },
+  "show_entry": true,
+  "name": "aitp-agent",
+  "version": "0.0.8"
+}

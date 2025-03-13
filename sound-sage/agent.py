@@ -92,7 +92,7 @@ class Agent:
                        Considerations:
                        1. Make sure to send only the information provided
                        2. Send the country as a 2 letter code in the 'countryCode' field, not the full country name
-                       3. Send the state as a 2 letter code in the 'provinceCode' field, not the full state name. Send only the state 2 letter state code and nothing more in the 'provinceCode' field. 
+                       3. Send the state as a 2 letter code in the 'provinceCode' field, not the full state name. Send only the state 2 letter state code and nothing more in the 'provinceCode' field.
                     """},
                     {"role": "user", "content": json.dumps(protocol)},
                     {"role": "system", "content": f"Current cart_id: {cart_id}"}
