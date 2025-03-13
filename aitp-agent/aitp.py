@@ -21,14 +21,18 @@ class Aitp(object):
 
     async def get_aitp_hello(self):
         self.env.add_system_log(f"Getting AITP hello")
-        self.aitp_hello_response = requests.get(f"{self.aitp_api_url}/hello").json()
+        if not self.aitp_api_url:
+            self.env.add_reply("AITP API URL is not set")
+            return None
 
-    def extract_tools_from_aitp_hello(self):
-        if isinstance(self.aitp_hello_response, str):
-            self.aitp_hello_response = json.loads(self.aitp_hello_response)
+        return requests.get(f"{self.aitp_api_url}/hello").json()
+
+    def extract_tools_from_aitp_hello(self, aitp_hello_response):
+        if isinstance(aitp_hello_response, str):
+            aitp_hello_response = json.loads(aitp_hello_response)
 
         tools = []
-        for api_command in self.aitp_hello_response['api_commands']:
+        for api_command in aitp_hello_response['api_commands']:
             properties = {}
             required_params = []
 
@@ -64,8 +68,11 @@ class Aitp(object):
             self.state = state
             self.save_state = save_state
 
-            await self.get_aitp_hello()
-            tools = self.extract_tools_from_aitp_hello()
+            aitp_hello_response = await self.get_aitp_hello()
+            if not aitp_hello_response:
+                return
+
+            tools = self.extract_tools_from_aitp_hello(aitp_hello_response)
             self.aitp_tools_handler = AitpToolsHandler(tools, self.aitp_api_url, self.update_state, self.env)
             self.env.add_system_log(self.aitp_tools_handler.get_tools_description_message())
 
