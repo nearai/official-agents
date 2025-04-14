@@ -38,8 +38,12 @@ class ShoppingMCP:
             if content.type != 'text':
                 continue
 
+
             try:
                 result_json = json.loads(content.text)
+                if tool_result.isError or result_json.get("error", ""):
+                    self.env.add_reply(result_json.get("error", ""))
+                    return []
                 results.append(json.dumps(result_json, indent=2))
             except json.JSONDecodeError:
                 results.append(content.text)
@@ -65,6 +69,8 @@ class ShoppingMCP:
                     json.loads(tool_call.function.arguments)
                 )
                 result = await self.process_tool_result(tool_result)
+                if not result or len(result) == 0:
+                    continue
                 if self.tool_post_processor_function:
                     result = self.tool_post_processor_function(tool_call, result)
                 results.extend(result)
@@ -116,4 +122,4 @@ class ShoppingMCP:
         except Exception as e:
             print(f"Error running MCP: {e}")
             print(traceback.format_exc())
-            self.env.add_reply(f"Error running MCP: {e}")
+            self.env.add_system_log(f"Error running MCP: {e.message}")
