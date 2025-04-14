@@ -1,0 +1,26 @@
+{
+  "name": "streaming-example",
+  "version": "0.0.1",
+  "category": "agent",
+  "description": "Demonstrates streaming agent runs.",
+  "tags": ["streaming"],
+  "details": {
+    "display_name": "Streaming Example",
+    "icon": "https://static.thenounproject.com/png/1677760-200.png",
+    "agent": {
+      "show_streaming_message": true,
+      "welcome": {
+        "title": "Example of streaming agent runs",
+        "description": "I can give you a humorous response"
+      },
+      "defaults": {
+        "max_iterations": 1,
+        "model": "llama-v3p3-70b-instruct",
+        "model_max_tokens": 4000,
+        "model_provider": "fireworks"
+      }
+    },
+    "capabilities": []
+  },
+  "show_entry": true
+}
