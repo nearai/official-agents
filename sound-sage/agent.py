@@ -215,7 +215,8 @@ class Agent:
         # aitp_amazon_get_cart_details
         # Description: Get details for a specific cart
         #
-        print(f"Post processing Tool call: {tool_call.function.name}")
+        self.env.add_system_log(f"Post processing tool call: {tool_call.function.name} with result: {tool_result}")
+
         match tool_call.function.name:
             case "aitp_amazon_search":
                 return self.process_search_results(tool_result)
