@@ -1,6 +1,6 @@
 {
   "name": "streaming-example",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "category": "agent",
   "description": "Demonstrates streaming agent runs.",
   "tags": ["streaming"],
@@ -11,7 +11,7 @@
       "show_streaming_message": true,
       "welcome": {
         "title": "Example of streaming agent runs",
-        "description": "I can give you a humorous response"
+        "description": "I respond as Socrates then as Plato."
       },
       "defaults": {
         "max_iterations": 1,
