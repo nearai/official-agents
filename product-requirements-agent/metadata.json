@@ -1,0 +1,19 @@
+{
+  "category": "agent",
+  "description": "Agent that creates a Product Requirements Document (PRD) and breaks it down into Project and Task objects.",
+  "tags": ["PRD", "project management", "task management"],
+  "details": {
+    "agent": {
+      "framework": "product-requirements-agent",
+      "welcome": {
+        "description": "I can help you create a Product Requirements Document (PRD) and break it down into Project and Task objects.",
+        "title": "Product Requirements Agent"
+      }
+    },
+    "env_vars": {
+    }
+  },
+  "show_entry": true,
+  "name": "product-requirements-agent",
+  "version": "0.1"
+}
