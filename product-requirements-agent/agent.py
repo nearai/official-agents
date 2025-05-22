@@ -1,54 +1,71 @@
 import json
-from typing import List, Dict, Any
+from typing import Optional, Dict
 
-class ProductRequirementsAgent:
-    def __init__(self):
-        self.notes = []
-        self.documents = []
+PROMPT = f"""Let's run some tests"""
 
-    def create_prd(self, title: str, description: str, objectives: List[str], scope: List[str]) -> str:
-        prd = {
-            "title": title,
-            "description": description,
-            "objectives": objectives,
-            "scope": scope
-        }
-        return json.dumps(prd, indent=4)
+class Agent:
+    def __init__(self, env):
+        self.env = env
 
-    def break_down_prd(self, prd: str) -> Dict[str, Any]:
-        prd_data = json.loads(prd)
-        project = {
-            "title": prd_data["title"],
-            "description": prd_data["description"],
-            "tasks": []
-        }
-        for objective in prd_data["objectives"]:
-            task = {
-                "title": objective,
-                "description": f"Task related to {objective}"
-            }
-            project["tasks"].append(task)
-        return project
+    def run(self):
+        try:
+            env = self.env
+            user_message = env.get_last_message()['content']
+            print(f"User message: {user_message}")
 
-    def accept_input(self, notes: List[str], documents: List[str]):
-        self.notes.extend(notes)
-        self.documents.extend(documents)
+            protocol = self.detect_protocol_message(user_message)
+            if protocol:
+                # catch decision messages
+                decision = protocol.get("decision")
+                print(f"decision: {decision}")
+                if decision:
+                    decision_id = decision.get("request_decision_id", "")
+                    option_id = decision.get("options", "")[0].get("id", "")
+                    if option_id.startswith("product"):
+                        self.route(protocol)
+                    else:
+                        self.choose_test(option_id)
+                else:
+                    self.route(protocol)
+            else:
+                self.choose_test(user_message)
+        except Exception as e:
+            # print stacktrace
+            import traceback
+            traceback.print_exc()
+            self.env.add_reply(f"Error: {e}")
 
-    def brainstorm_suggestions(self, topic: str) -> List[str]:
-        suggestions = [
-            f"Consider adding more details about {topic}.",
-            f"Include examples related to {topic}.",
-            f"Research best practices for {topic}."
-        ]
-        return suggestions
+    def detect_protocol_message(self, message: str) -> Optional[Dict]:
+        """Determines if the message is an AITP protocol message."""
+        # if the message is json and has a json $schema key starting with "https://aitp.dev" then it is a protocol message
+        # in that case, return all keys other than the $schema key
+        if message.startswith("{") and message.endswith("}"):
+            try:
+                message = json.loads(message)
+            except json.JSONDecodeError:
+                return None
+            if message.get("$schema") and message["$schema"].startswith("https://aitp.dev"):
+                return {k: v for k, v in message.items() if k != "$schema"}
+        return None
 
-# Example usage
-agent = ProductRequirementsAgent()
-agent.accept_input(["Initial note"], ["Initial document"])
-prd = agent.create_prd("New Product", "This is a new product.", ["Objective 1", "Objective 2"], ["Scope 1", "Scope 2"])
-project = agent.break_down_prd(prd)
-suggestions = agent.brainstorm_suggestions("Objective 1")
+    def route(self, protocol: dict):
+        message_type = list(protocol.keys())[0]
+        match message_type:
+            case "decision":
+                self.env.add_reply(json.dumps(request_data))
+            case "data":
+                self.env.add_reply(json.dumps(quote_with_shipping))
+                pass
+            case "payment_authorization":
+                self.env.add_reply(json.dumps(payment_result))
+            case "init":
+                help_menu(self.env)
+            case _:
+                raise ValueError(f"Unknown message type: {message_type}")
 
-print("PRD:", prd)
-print("Project:", project)
-print("Suggestions:", suggestions)
+    def completion(self, messages):
+        self.env.add_reply(self.env.completion(messages))
+
+if globals().get('env', None):
+    agent = Agent(globals().get('env', {}))
+    agent.run()

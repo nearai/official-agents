@@ -56,3 +56,38 @@ Example:
 suggestions = agent.brainstorm_suggestions("Objective 1")
 print("Suggestions:", suggestions)
 ```
+
+## Running the Agent
+
+To run the agent, ensure you have the necessary dependencies installed and execute the `agent.py` file.
+
+### Dependencies
+
+- Python 3.7+
+- `requests` library
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/nearai/official-agents.git
+cd official-agents/product-requirements-agent
+```
+
+2. Create a virtual environment and activate it:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. Install the required dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+### Execution
+
+To run the agent, execute the following command:
+```bash
+python agent.py
+```

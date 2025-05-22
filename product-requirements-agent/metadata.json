@@ -8,10 +8,23 @@
       "welcome": {
         "description": "I can help you create a Product Requirements Document (PRD) and break it down into Project and Task objects.",
         "title": "Product Requirements Agent"
+      },
+      "defaults": {
+        "max_iterations": 1,
+        "model": "llama-v3p3-70b-instruct",
+        "model_max_tokens": 4096,
+        "model_provider": "fireworks",
+        "model_temperature": 1
       }
     },
-    "env_vars": {
-    }
+    "display_name": "Product Requirements Agent",
+    "icon": "",
+    "capabilities": [
+      {"$schema": "https://aitp.dev/v1/requests.schema.json" },
+      {"$schema": "https://aitp.dev/v1/data.schema.json" },
+      {"$schema": "https://aitp.dev/v1/payments.schema.json" },
+      {"$schema": "https://aitp.dev/v1/operations.schema.json" }
+    ]
   },
   "show_entry": true,
   "name": "product-requirements-agent",
